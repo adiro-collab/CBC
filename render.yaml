@@ -7,7 +7,7 @@ services:
   - type: web
     name: cbc-ai-discovery
     runtime: static
-    buildCommand: "rm -rf build && mkdir build && cp index.html build/ && cp -R assets build/"
+    buildCommand: "rm -rf build && mkdir build && cp index.html html2.html build/ && cp -R assets build/"
     staticPublishPath: build
     pullRequestPreviewsEnabled: false
     headers:
