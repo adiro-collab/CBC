@@ -547,6 +547,18 @@
     transition:border-color .2s ease, transform .2s ease, box-shadow .2s ease;
   }
   .mc:hover{border-color:var(--teal);transform:translateY(-5px);box-shadow:0 18px 40px -20px rgba(10,158,122,.45)}
+  /* every card shares the parent's rows → number, department, title, costs and savings line up across all 7 */
+  .mvp{row-gap:.9cqh}
+  .mvp .mc{display:grid;grid-template-rows:subgrid;justify-items:center;align-content:stretch}
+  #s12 .mvp{grid-template-rows:auto auto auto 1fr auto}
+  #s12 .mc{grid-row:span 5}
+  #s12 .mc .costs{align-self:center}
+  #s13 .s-body{justify-content:center}
+  #s13 .mvp{flex:none;grid-template-rows:auto auto auto auto auto auto auto}
+  #s13 .mc{grid-row:span 7}
+  #s13 .mc .stand{margin-top:-.9cqh}
+  .mc .dp,.mc h3{align-self:center}
+  .mvp .mc .save{align-self:start}
   .mc .n{
     width:2.3em;height:2.3em;border-radius:50%;background:var(--teal);color:#fff;flex:none;
     display:grid;place-items:center;font-family:var(--font-mono);font-weight:600;font-size:clamp(.7rem,2cqh,1rem);
