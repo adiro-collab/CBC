@@ -1,0 +1,1718 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CBC AI Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Rubik:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+<style>
+  *{box-sizing:border-box}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+
+  :root{
+    color-scheme: dark;
+    --bg:#080d18;
+    --bg-2:#0d1324;
+    --panel:#0f1c25;
+    --panel-2:#14262e;
+    --panel-3:#1b3038;
+    --line:rgba(22,217,168,.16);
+    --line-2:rgba(22,217,168,.36);
+    --teal:#16d9a8;
+    --teal-2:#54f2ca;
+    --blue:#22a5dc;
+    --violet:#9b8afb;
+    --gold:#e0b23a;
+    --red:#f26d6d;
+    --ink:#e9f3f1;
+    --ink-2:#a4b8b5;
+    --ink-3:#6b8380;
+    --r:14px;
+    --font-head:"Assistant","Segoe UI","Helvetica Neue",Arial,sans-serif;
+    --font-body:"Rubik","Segoe UI",Arial,sans-serif;
+    --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+
+    /* department colours (from the source deck, lifted for a dark stage) */
+    --d-hr:#2dd4bf;
+    --d-pur:#eab308;
+    --d-sales:#60a5fa;
+    --d-fin:#4ade80;
+    --d-mar:#a78bfa;
+    --d-ms:#22d3ee;
+    --d-supp:#fb923c;
+    --d-tera:#f87171;
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+    overflow:hidden;
+  }
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  a{color:var(--teal);text-decoration:none}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:4px}
+  em{font-style:normal;color:var(--teal-2)}
+  strong{font-weight:700;color:var(--ink)}
+  .num-ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
+
+  /* ---------- stage ---------- */
+  .deck{
+    position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;
+    background:
+      radial-gradient(1100px 680px at 74% 16%, rgba(22,217,168,.11), transparent 62%),
+      radial-gradient(900px 620px at 16% 96%, rgba(34,165,220,.09), transparent 60%),
+      var(--bg);
+  }
+  .deck::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1.4px);
+    background-size:36px 36px;
+    -webkit-mask-image:radial-gradient(130% 130% at 50% 38%, #000 42%, transparent 80%);
+    mask-image:radial-gradient(130% 130% at 50% 38%, #000 42%, transparent 80%);
+    opacity:.55;
+  }
+
+  .stage{
+    position:relative;
+    width:min(95vw, 168.9vh);
+    height:min(53.4vw, 95vh);
+    max-width:1360px;max-height:765px;
+    background:linear-gradient(180deg,#0b131f,#0a1019);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:18px;
+    box-shadow:0 44px 120px -34px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.04);
+    container-type:size;
+    container-name:stage;
+    overflow:hidden;
+  }
+
+  .slide{
+    position:absolute;inset:0;
+    padding:6.6cqh 6cqw 7.4cqh;
+    display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;
+    transition:opacity .42s ease, visibility .42s;
+    overflow:auto;
+    scrollbar-width:none;
+  }
+  .slide::-webkit-scrollbar{width:0;height:0}
+  .slide.is-active{opacity:1;visibility:visible}
+  @media (prefers-reduced-motion:reduce){ .slide{transition:none} }
+
+  .s-head{margin-bottom:3cqh;flex:none}
+  .eyebrow{
+    display:flex;align-items:center;gap:.7em;
+    font-size:clamp(.6rem,1.65cqh,.86rem);
+    letter-spacing:.16em;color:var(--ink-3);font-weight:500;
+    margin-bottom:1.6cqh;
+  }
+  .eyebrow .tick{width:1.7em;height:2px;background:var(--teal);border-radius:2px;flex:none}
+  .eyebrow .num{font-family:var(--font-mono);color:var(--teal)}
+  .s-title{
+    font-family:var(--font-head);font-weight:800;
+    font-size:clamp(1.7rem,6.6cqh,3.6rem);
+    line-height:1.04;color:var(--teal);
+    text-wrap:balance;margin:0;
+  }
+  .s-sub{
+    margin:1.2cqh 0 0;
+    color:var(--ink-2);
+    font-size:clamp(.74rem,2.15cqh,1.05rem);line-height:1.5;
+  }
+  .s-body{flex:1;display:flex;flex-direction:column;justify-content:center;gap:2.6cqh;min-height:0}
+
+  /* dense slides (tables, charts) get a tighter header */
+  .slide--dense{padding-top:5.2cqh}
+  .slide--dense .s-head{margin-bottom:1.8cqh}
+  .slide--dense .eyebrow{margin-bottom:1cqh}
+  .slide--dense .s-title{font-size:clamp(1.4rem,5.2cqh,2.8rem)}
+  .slide--dense .s-sub{margin-top:.8cqh;font-size:clamp(.68rem,1.9cqh,.95rem)}
+  .slide--dense .s-body{justify-content:flex-start}
+
+  /* ---------- reveal ---------- */
+  [data-reveal]{
+    opacity:0;transform:translateY(16px);
+    transition:opacity .55s cubic-bezier(.2,.7,.2,1), transform .55s cubic-bezier(.2,.7,.2,1);
+  }
+  .slide.is-active [data-reveal]{
+    opacity:1;transform:none;
+    transition-delay:calc(var(--i,0) * 65ms + 90ms);
+  }
+  /* bars that grow from the RTL start edge */
+  .grow{transform:scaleX(0);transform-origin:right center;transition:transform .9s cubic-bezier(.2,.7,.2,1)}
+  .slide.is-active .grow{transform:scaleX(1);transition-delay:calc(var(--g,0) * 70ms + 350ms)}
+  @media (prefers-reduced-motion:reduce){
+    [data-reveal],.slide.is-active [data-reveal]{opacity:1;transform:none;transition:none}
+    .grow,.slide.is-active .grow{transform:none;transition:none}
+  }
+
+  /* ---------- shared cards ---------- */
+  .grid{display:grid;gap:2.2cqw}
+  .cols-2{grid-template-columns:1fr 1fr}
+  .cols-3{grid-template-columns:repeat(3,1fr)}
+  .cols-4{grid-template-columns:repeat(4,1fr)}
+
+  .card{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--r);
+    padding:3cqh 2.3cqw;
+    display:flex;flex-direction:column;gap:1.4cqh;
+    transition:border-color .25s ease, transform .25s ease, background .25s ease;
+  }
+  .card:hover{border-color:var(--line-2);transform:translateY(-4px);background:var(--panel-2)}
+  .card h3{
+    font-family:var(--font-head);font-weight:700;margin:0;color:var(--ink);
+    font-size:clamp(1rem,2.9cqh,1.5rem);line-height:1.2;
+  }
+  .card p{margin:0;color:var(--ink-2);line-height:1.6;font-size:clamp(.72rem,2cqh,.98rem)}
+  .spark{
+    position:absolute;top:1.9cqh;inset-inline-end:1.6cqw;
+    width:1.25em;height:1.25em;color:var(--teal);opacity:.5;pointer-events:none;
+  }
+  .ic{fill:none}
+  .idx{
+    font-family:var(--font-mono);font-weight:500;color:var(--teal);
+    font-size:clamp(1.2rem,4cqh,2.2rem);opacity:.45;line-height:1;
+  }
+  .note{
+    text-align:center;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:1.7cqh 3cqw;color:var(--ink-2);
+    font-size:clamp(.72rem,1.95cqh,1rem);line-height:1.55;
+  }
+  .note b{color:var(--teal-2);font-weight:600}
+  .pill{
+    display:inline-flex;align-items:center;gap:.4em;
+    font-family:var(--font-mono);font-size:clamp(.54rem,1.45cqh,.72rem);letter-spacing:.1em;
+    color:var(--teal);border:1px solid var(--line-2);border-radius:999px;padding:.3em .9em;white-space:nowrap;
+  }
+  .dot{width:.62em;height:.62em;border-radius:50%;background:var(--c,var(--teal));flex:none;box-shadow:0 0 10px var(--c,var(--teal))}
+
+  /* ---------- 1 : title ---------- */
+  #s1{overflow:hidden}
+  .hero-bg{
+    position:absolute;inset:0 auto 0 0;width:62%;height:100%;object-fit:cover;object-position:30% 50%;
+    opacity:.2;pointer-events:none;
+    -webkit-mask-image:linear-gradient(90deg,#000 20%,transparent 92%);
+    mask-image:linear-gradient(90deg,#000 20%,transparent 92%);
+  }
+  .hero{position:relative;margin:auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2.4cqh}
+  .lockup{display:flex;align-items:center;gap:2.6cqw}
+  .lockup .sg{height:clamp(30px,8.4cqh,64px);width:auto}
+  .lockup .cbc{height:clamp(36px,10.4cqh,80px);width:auto}
+  .lockup .x{font-family:var(--font-mono);color:var(--ink-3);font-size:clamp(1rem,3.6cqh,1.8rem);font-weight:400}
+  .hero .tagline{font-family:var(--font-mono);color:var(--ink-2);font-size:clamp(.66rem,1.9cqh,.95rem);letter-spacing:.22em}
+  .hero .rule{
+    width:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--teal),transparent);
+    transition:width .9s ease .45s;
+  }
+  #s1.is-active .hero .rule{width:min(380px,44cqw)}
+  @media (prefers-reduced-motion:reduce){ #s1.is-active .hero .rule{transition:none} }
+  .hero h1{
+    font-family:var(--font-head);font-weight:800;margin:0;line-height:1;
+    font-size:clamp(2.6rem,12.5cqh,6.6rem);letter-spacing:-.01em;color:var(--teal);
+  }
+  .hero h1 .w{color:var(--ink)}
+  .hero .subtitle{font-family:var(--font-head);font-weight:600;color:var(--ink);font-size:clamp(1rem,3.6cqh,1.85rem)}
+  .hero .foot{font-family:var(--font-head);font-weight:800;color:#fff;font-size:clamp(.85rem,2.6cqh,1.3rem);letter-spacing:.06em;margin-top:1.4cqh}
+
+  /* ---------- 2 : agenda ---------- */
+  .agenda{display:grid;grid-template-columns:1.1fr 1fr;gap:6cqw;flex:1;align-items:center}
+  .agenda .list{display:flex;flex-direction:column}
+  .a-item{
+    display:flex;align-items:center;gap:1.8cqw;width:100%;
+    padding:1.25cqh .4cqw;border-bottom:1px solid var(--line);
+    font-family:var(--font-head);font-weight:700;text-align:start;
+    font-size:clamp(.95rem,3cqh,1.5rem);color:var(--ink);
+    transition:color .2s ease, padding-inline-start .2s ease;
+  }
+  .a-item:hover{color:var(--teal);padding-inline-start:1.4cqw}
+  .a-item .circle{
+    width:2.1em;height:2.1em;flex:none;border:2px solid var(--teal);border-radius:50%;
+    display:grid;place-items:center;font-family:var(--font-mono);font-weight:500;
+    font-size:.6em;color:var(--teal);
+  }
+  .agenda .big{
+    font-family:var(--font-head);font-weight:800;color:var(--teal);
+    font-size:clamp(1.9rem,8.4cqh,4.4rem);line-height:1.05;text-wrap:balance;
+    border-inline-start:2px solid var(--line-2);padding-inline-start:5cqw;
+  }
+  .agenda .big small{display:block;margin-top:2.4cqh;font-family:var(--font-mono);font-weight:500;font-size:.26em;letter-spacing:.18em;color:var(--ink-3)}
+
+  /* ---------- 3 : meeting goals (4-step flow) ---------- */
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:2.4cqw;align-items:stretch;position:relative}
+  .step{
+    position:relative;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:3.6cqh 2cqw 3.4cqh;
+    display:flex;flex-direction:column;gap:2.6cqh;min-height:40cqh;
+    transition:border-color .25s ease, transform .25s ease, background .25s ease;
+  }
+  .step:hover{border-color:var(--line-2);transform:translateY(-4px);background:var(--panel-2)}
+  .step .n{
+    width:2.4em;height:2.4em;border-radius:50%;
+    border:1px solid var(--line-2);background:var(--bg-2);color:var(--teal);
+    display:grid;place-items:center;font-family:var(--font-mono);font-size:clamp(.7rem,2cqh,1rem);
+  }
+  .step h3{font-family:var(--font-head);font-weight:700;margin:0;color:var(--ink);font-size:clamp(1.15rem,4cqh,2.1rem);line-height:1.25}
+  .step .bar{margin-top:auto;height:3px;border-radius:3px;background:linear-gradient(270deg,var(--teal),transparent)}
+  .step:not(:last-child)::after{
+    content:"";position:absolute;top:50%;inset-inline-end:-1.75cqw;width:1.1cqw;height:1.1cqw;
+    border-top:2px solid var(--line-2);border-left:2px solid var(--line-2);transform:translateY(-50%) rotate(-45deg);
+  }
+
+  /* ---------- 4 : why / approach ---------- */
+  .why{display:grid;grid-template-columns:1.05fr 1fr;gap:3cqw;align-items:stretch}
+  .why-panel{
+    background:linear-gradient(160deg,rgba(22,217,168,.1),rgba(22,217,168,.02) 55%),var(--panel);
+    border:1px solid var(--line-2);border-radius:16px;padding:4cqh 3cqw;
+    display:flex;flex-direction:column;gap:2cqh;
+  }
+  .why-panel h3{font-family:var(--font-head);font-weight:800;color:var(--teal);margin:0;font-size:clamp(1.15rem,3.8cqh,1.9rem)}
+  .why-panel p{margin:0;color:var(--ink);line-height:1.7;font-size:clamp(.78rem,2.2cqh,1.08rem)}
+  .why-panel p b{color:var(--teal-2);font-weight:600}
+  .why-panel .quote{margin-top:auto;padding-top:2cqh;border-top:1px solid var(--line);color:var(--ink-2);font-style:italic}
+  .approach{display:flex;flex-direction:column;gap:1.6cqh}
+  .approach .ap-title{font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.95rem,2.8cqh,1.4rem);margin:0 0 .4cqh}
+  .ap{
+    display:grid;grid-template-columns:auto 1fr;gap:1.6cqw;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:1.9cqh 1.8cqw;
+    transition:border-color .2s ease, background .2s ease, transform .2s ease;
+  }
+  .ap:hover{border-color:var(--line-2);background:var(--panel-2);transform:translateX(-4px)}
+  .ap .n{
+    width:2.3em;height:2.3em;border-radius:50%;background:var(--teal);color:#04130e;
+    display:grid;place-items:center;font-family:var(--font-mono);font-weight:600;font-size:clamp(.72rem,2cqh,1rem);
+  }
+  .ap b{display:block;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.88rem,2.5cqh,1.25rem)}
+  .ap span{color:var(--ink-2);font-size:clamp(.66rem,1.8cqh,.9rem);line-height:1.45}
+
+  /* ---------- 6 : teams ---------- */
+  .teams{display:grid;grid-template-columns:1fr 1.05fr;gap:3cqw;align-items:stretch}
+  .teams .col{display:flex;flex-direction:column;gap:1.8cqh}
+  .col-title{font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.95rem,2.8cqh,1.4rem);margin:0}
+  .party{display:flex;flex-direction:row;gap:1.4cqw;align-items:flex-start;padding:2.4cqh 2cqw}
+  .party .dot{margin-top:.5em;width:.8em;height:.8em}
+  .party b{display:block;font-family:var(--font-head);font-weight:800;font-size:clamp(.95rem,2.8cqh,1.4rem);color:var(--c)}
+  .party span{color:var(--ink-2);font-size:clamp(.7rem,1.95cqh,.98rem);line-height:1.55}
+  .bigstat{
+    display:flex;align-items:center;gap:2cqw;margin-top:auto;
+    background:linear-gradient(135deg,rgba(22,217,168,.16),rgba(34,165,220,.06));
+    border:1px solid var(--line-2);border-radius:14px;padding:2.8cqh 2.4cqw;
+  }
+  .bigstat .v{font-family:var(--font-mono);font-weight:600;color:var(--teal);font-size:clamp(2rem,9cqh,4.6rem);line-height:1;direction:ltr}
+  .bigstat p{margin:0;color:var(--ink);line-height:1.55;font-size:clamp(.72rem,2cqh,1rem)}
+  .depts{display:grid;grid-template-columns:1fr 1fr;gap:1.4cqh 1.2cqw}
+  .dept{
+    display:flex;align-items:center;gap:1cqw;padding:1.7cqh 1.4cqw;
+    background:var(--panel);border:1px solid var(--line);border-inline-start:3px solid var(--c);
+    border-radius:10px;transition:background .2s ease, transform .2s ease;
+  }
+  .dept:hover{background:var(--panel-2);transform:translateY(-3px)}
+  .dept b{font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.82rem,2.35cqh,1.15rem);flex:1}
+  .dept .v{font-family:var(--font-mono);font-weight:600;color:var(--c);font-size:clamp(1rem,3.4cqh,1.7rem);line-height:1}
+  .dept small{color:var(--ink-3);font-size:clamp(.56rem,1.5cqh,.74rem)}
+  .dept--last{grid-column:1/-1}
+
+  /* ---------- 7 : journey ---------- */
+  .journey{position:relative;display:grid;grid-template-columns:repeat(6,1fr);gap:1.1cqw;margin-top:1cqh}
+  .journey::before{
+    content:"";position:absolute;top:2.6cqh;inset-inline:3cqw;height:3px;border-radius:3px;
+    background:linear-gradient(270deg,var(--blue),var(--teal));box-shadow:0 0 18px rgba(22,217,168,.25);
+  }
+  .ph{display:flex;flex-direction:column;align-items:center;gap:1.4cqh;position:relative}
+  .ph-node{
+    position:relative;z-index:2;width:5.2cqh;height:5.2cqh;min-width:30px;min-height:30px;border-radius:50%;
+    background:var(--bg-2);border:2px solid var(--teal);color:var(--teal);display:grid;place-items:center;
+    font-family:var(--font-mono);font-weight:600;font-size:clamp(.62rem,1.8cqh,.9rem);
+    box-shadow:0 0 0 6px #0b131f,0 0 18px rgba(22,217,168,.3);
+  }
+  .ph-card{
+    width:100%;flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:2cqh 1.1cqw;display:flex;flex-direction:column;gap:.9cqh;text-align:center;
+    transition:border-color .2s ease, transform .2s ease, background .2s ease;
+  }
+  .ph:hover .ph-card{border-color:var(--line-2);transform:translateY(-3px);background:var(--panel-2)}
+  .ph-date{font-family:var(--font-mono);color:var(--ink-3);font-size:clamp(.54rem,1.5cqh,.74rem);letter-spacing:.06em}
+  .ph-title{font-family:var(--font-head);font-weight:800;color:var(--ink);font-size:clamp(.82rem,2.4cqh,1.2rem)}
+  .ph-v{font-family:var(--font-mono);font-weight:600;color:var(--teal);font-size:clamp(1.5rem,6cqh,3.1rem);line-height:1}
+  .ph-l{color:var(--ink-2);font-size:clamp(.58rem,1.6cqh,.8rem);line-height:1.35;min-height:2.7em}
+  .ph ul{list-style:none;margin:.6cqh 0 0;padding:1.2cqh 0 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:.7cqh;text-align:start}
+  .ph li{position:relative;padding-inline-start:1.1em;color:var(--ink-2);font-size:clamp(.56rem,1.55cqh,.78rem);line-height:1.35}
+  .ph li::before{content:"";position:absolute;inset-inline-start:0;top:.45em;width:.42em;height:.42em;background:var(--teal);border-radius:2px;transform:rotate(45deg)}
+  .ph--now .ph-node{background:var(--teal);color:#04130e;animation:pulse 2.2s ease-out infinite}
+  .ph--now .ph-card{border-color:var(--teal);background:linear-gradient(180deg,rgba(22,217,168,.12),var(--panel) 60%)}
+  .here{
+    position:absolute;top:-4.4cqh;font-family:var(--font-head);font-weight:800;color:var(--teal);
+    font-size:clamp(.7rem,2cqh,1rem);white-space:nowrap;
+  }
+  @keyframes pulse{0%{box-shadow:0 0 0 6px #0b131f,0 0 0 6px rgba(22,217,168,.55)}100%{box-shadow:0 0 0 6px #0b131f,0 0 0 22px rgba(22,217,168,0)}}
+  @media (prefers-reduced-motion:reduce){ .ph--now .ph-node{animation:none} }
+
+  /* ---------- 8 : executive summary ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr) 1.6fr;gap:1.3cqw}
+  .kpi{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2.2cqh 1.4cqw;
+    display:flex;flex-direction:column;gap:.6cqh;align-items:center;text-align:center;
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .kpi:hover{border-color:var(--line-2);transform:translateY(-3px)}
+  .kpi .v{font-family:var(--font-mono);font-weight:600;color:var(--teal);font-size:clamp(1.5rem,6.6cqh,3.4rem);line-height:1;direction:ltr}
+  .kpi .l{color:var(--ink-2);font-size:clamp(.62rem,1.75cqh,.88rem)}
+  .kpi--hero{
+    background:linear-gradient(135deg,rgba(22,217,168,.22),rgba(34,165,220,.08));border-color:var(--teal);
+    box-shadow:0 0 40px -14px rgba(22,217,168,.6);
+  }
+  .kpi--hero .v{color:var(--teal-2)}
+  .kpi--hero .l{color:var(--ink)}
+  .exec{display:grid;grid-template-columns:1fr .78fr 1.15fr;gap:1.3cqw;flex:1;min-height:0}
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2.2cqh 1.6cqw;
+    display:flex;flex-direction:column;gap:1.4cqh;min-height:0;
+  }
+  .panel h4{margin:0;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.82rem,2.4cqh,1.2rem)}
+  .prios{flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
+  .prio{display:grid;grid-template-columns:auto 1fr;gap:.5cqh 1cqw;align-items:center}
+  .prio .pv{font-family:var(--font-mono);font-weight:600;font-size:clamp(1.1rem,4.2cqh,2.1rem);color:var(--c);line-height:1;text-align:center;min-width:2.2ch}
+  .prio .pl{display:flex;flex-direction:column;gap:.6cqh}
+  .prio .pl b{font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.7rem,1.95cqh,.98rem)}
+  .prio .pl b span{color:var(--ink-3);font-weight:400;font-family:var(--font-body)}
+  .track{height:7px;border-radius:7px;background:rgba(255,255,255,.06);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:7px;background:var(--c)}
+  .meet{display:flex;flex-direction:column;gap:1.4cqh;flex:1;justify-content:center}
+  .meet .tot{display:flex;align-items:baseline;gap:.8cqw}
+  .meet .tot .v{font-family:var(--font-mono);font-weight:600;font-size:clamp(1.6rem,7cqh,3.5rem);color:var(--teal);line-height:1}
+  .meet .tot span{color:var(--ink-2);font-size:clamp(.66rem,1.8cqh,.9rem)}
+  .split{display:flex;height:12px;border-radius:12px;overflow:hidden;gap:3px}
+  .split i{display:block;height:100%}
+  .split-legend{display:flex;justify-content:space-between;gap:1cqw;color:var(--ink-2);font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .split-legend b{font-family:var(--font-mono);font-weight:600;color:var(--ink);margin-inline-end:.35em}
+  .split-legend span{display:flex;align-items:center;gap:.4em}
+  .hbars{display:flex;flex-direction:column;gap:.95cqh;flex:1;justify-content:center}
+  .hb{display:grid;grid-template-columns:7.2em 1fr;align-items:center;gap:.8cqw;font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .hb span{color:var(--ink-2);white-space:nowrap}
+  .hb .t{position:relative;height:1.55em}
+  .hb .t i{position:absolute;inset-block:0;inset-inline-start:0;border-radius:4px;background:var(--c);opacity:.85}
+  .hb .t b{position:absolute;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-weight:600;color:var(--ink);font-size:.95em;inset-inline-start:calc(var(--w) + .6em)}
+
+  /* ---------- 9-10 : tables ---------- */
+  .tbl-wrap{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  table.sc{width:100%;border-collapse:collapse;font-size:clamp(.56rem,1.62cqh,.82rem)}
+  .sc th{
+    background:rgba(22,217,168,.1);color:var(--teal);font-family:var(--font-mono);font-weight:500;letter-spacing:.06em;
+    text-align:start;padding:1.15cqh .9cqw;font-size:.9em;white-space:nowrap;border-bottom:1px solid var(--line-2);
+  }
+  .sc td{padding:.82cqh .9cqw;border-bottom:1px solid rgba(255,255,255,.05);color:var(--ink-2);white-space:nowrap}
+  .sc tr:last-child td{border-bottom:0}
+  .sc tbody tr{transition:background .15s ease}
+  .sc tbody tr:hover{background:var(--panel-2)}
+  .sc tbody tr:hover td.proc{color:var(--teal-2)}
+  .sc td.n{font-family:var(--font-mono);color:var(--ink-3);width:3ch}
+  .sc td.id{font-family:var(--font-mono);color:var(--ink);font-size:.92em}
+  .sc td.proc{color:var(--ink);font-weight:500;white-space:normal}
+  .sc td.dp{white-space:nowrap}
+  .sc td.dp .dot{display:inline-block;margin-inline-end:.5em;width:.55em;height:.55em;box-shadow:none}
+  .sc td.val{font-family:var(--font-mono);color:var(--teal);font-weight:600}
+  .sc td.val.ind{font-family:var(--font-body);color:var(--ink-3);font-weight:400}
+  .tag{display:inline-block;border-radius:5px;padding:.15em .55em;font-family:var(--font-mono);font-size:.86em;font-weight:500;letter-spacing:.04em;margin-inline-end:.3em}
+  .tag--mvp{background:rgba(22,217,168,.16);color:var(--teal-2);border:1px solid var(--line-2)}
+  .tag--qw{background:rgba(224,178,58,.14);color:var(--gold);border:1px solid rgba(224,178,58,.4)}
+  .cx{display:inline-flex;align-items:center;gap:.45em}
+  .cx i{display:block;width:2.6em;height:5px;border-radius:5px;background:rgba(255,255,255,.08);position:relative;overflow:hidden}
+  .cx i::after{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:var(--w);background:var(--c);border-radius:5px}
+  .cx--low{--c:var(--teal);--w:33%}
+  .cx--mid{--c:var(--gold);--w:66%}
+  .cx--high{--c:var(--red);--w:100%}
+  .tbl-legend{display:flex;gap:2cqw;justify-content:flex-end;color:var(--ink-3);font-size:clamp(.56rem,1.5cqh,.76rem);margin-top:1.2cqh}
+  .tbl-legend span{display:flex;align-items:center;gap:.5em}
+
+  /* ---------- 11 : value vs complexity matrix ---------- */
+  .mx{display:grid;grid-template-columns:1fr 15.5cqw;gap:2cqw;flex:1;min-height:0}
+  .mx-frame{position:relative;direction:ltr;display:grid;grid-template-columns:4.4cqw 1fr;grid-template-rows:1fr 6.6cqh;min-height:0}
+  .mx-y{grid-row:1;grid-column:1;position:relative}
+  .mx-y span{position:absolute;inset-inline-end:.8cqw;transform:translateY(-50%);color:var(--ink-2);font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .mx-y .axis{position:absolute;inset-inline-start:0;top:50%;transform:translate(50%,-50%) rotate(-90deg);transform-origin:center;white-space:nowrap;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.66rem,1.9cqh,.95rem)}
+  .mx-plot{
+    grid-row:1;grid-column:2;position:relative;direction:ltr;
+    background:
+      linear-gradient(90deg, rgba(22,217,168,.08), transparent 40%),
+      var(--panel);
+    border:1px solid var(--line);border-radius:12px;
+  }
+  .mx-plot .zone{position:absolute;left:0;top:0;width:56%;height:40%;border-radius:12px 0 0 0;
+    background:radial-gradient(120% 120% at 0 0, rgba(22,217,168,.13), transparent 70%);pointer-events:none}
+  .mx-plot .zone-l{position:absolute;left:1.2cqw;top:1.6cqh;font-family:var(--font-mono);font-size:clamp(.52rem,1.4cqh,.7rem);letter-spacing:.14em;color:var(--teal);opacity:.8;pointer-events:none}
+  .mx-plot .gl{position:absolute;background:rgba(255,255,255,.05);pointer-events:none}
+  .mx-x{grid-row:2;grid-column:2;position:relative;direction:ltr}
+  .mx-x span{position:absolute;top:1cqh;transform:translateX(-50%);font-family:var(--font-mono);color:var(--ink-2);font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .mx-x .axis{position:absolute;left:50%;bottom:0;transform:translateX(-50%);font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.66rem,1.9cqh,.95rem);white-space:nowrap;direction:rtl}
+  .bub{
+    position:absolute;transform:translate(-50%,-50%);
+    width:clamp(12px,2.9cqh,22px);aspect-ratio:1;border-radius:50%;
+    background:var(--c);border:2px solid rgba(8,13,24,.85);
+    box-shadow:0 0 0 1px var(--c),0 0 12px -2px var(--c);
+    transition:transform .2s ease, opacity .25s ease, box-shadow .2s ease;
+    opacity:0;
+  }
+  .slide.is-active .bub{opacity:.92;transition-delay:calc(var(--k,0) * 22ms + 300ms)}
+  .bub:hover,.bub:focus-visible{transform:translate(-50%,-50%) scale(1.45);opacity:1;z-index:5;outline:none}
+  .bub--mvp{width:clamp(16px,3.8cqh,28px);box-shadow:0 0 0 2px var(--teal-2),0 0 18px var(--teal)}
+  .bub--mvp::after{
+    content:"MVP";position:absolute;bottom:100%;left:50%;transform:translate(-50%,-3px);
+    font-family:var(--font-mono);font-weight:600;font-size:clamp(.42rem,1.15cqh,.6rem);letter-spacing:.06em;
+    color:#04130e;background:var(--teal-2);border-radius:4px;padding:.05em .35em;
+  }
+  .mx.has-filter .bub{opacity:.12!important}
+  .mx.has-filter .bub.on{opacity:1!important}
+  .tip{
+    position:absolute;z-index:10;pointer-events:none;direction:rtl;
+    min-width:13em;max-width:20em;background:rgba(8,13,24,.96);border:1px solid var(--line-2);border-radius:10px;
+    padding:1.2cqh 1cqw;box-shadow:0 18px 40px -16px rgba(0,0,0,.8);
+    font-size:clamp(.6rem,1.65cqh,.84rem);color:var(--ink-2);line-height:1.45;
+    transform:translate(-50%,calc(-100% - 14px));
+  }
+  .tip b{display:block;color:var(--ink);font-family:var(--font-head);font-size:1.12em;margin-bottom:.2em}
+  .tip .row{display:flex;justify-content:space-between;gap:1em}
+  .tip .row em{font-family:var(--font-mono);color:var(--teal)}
+  .mx-legend{display:flex;flex-direction:column;gap:.75cqh;align-self:stretch}
+  .mx-legend h4{margin:0 0 .4cqh;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.78rem,2.2cqh,1.1rem)}
+  .lg{
+    display:flex;align-items:center;gap:.7em;padding:.95cqh .8cqw;border-radius:8px;border:1px solid transparent;
+    color:var(--ink-2);font-size:clamp(.62rem,1.75cqh,.88rem);text-align:start;transition:background .15s ease,border-color .15s ease,color .15s ease;
+  }
+  .lg:hover{background:var(--panel);color:var(--ink)}
+  .lg.on{border-color:var(--c);background:var(--panel-2);color:var(--ink)}
+  .lg .cnt{margin-inline-start:auto;font-family:var(--font-mono);color:var(--ink-3);font-size:.9em}
+  .mx-hint{margin-top:auto;color:var(--ink-3);font-size:clamp(.54rem,1.45cqh,.72rem);line-height:1.45}
+
+  /* ---------- 12-13 : MVP cards ---------- */
+  .mvp{display:grid;grid-template-columns:repeat(7,1fr);gap:.95cqw;flex:1;min-height:0}
+  .mc{
+    position:relative;overflow:hidden;
+    background:linear-gradient(180deg,#0f1d29,#0c1720);border:1px solid var(--line);border-radius:12px;
+    padding:2.2cqh .9cqw 1.8cqh;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:.9cqh;text-align:center;
+    transition:border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+  .mc:hover{border-color:var(--teal);transform:translateY(-5px);box-shadow:0 18px 40px -20px rgba(22,217,168,.5)}
+  .mc .n{
+    width:2.3em;height:2.3em;border-radius:50%;background:var(--teal);color:#04130e;flex:none;
+    display:grid;place-items:center;font-family:var(--font-mono);font-weight:600;font-size:clamp(.7rem,2cqh,1rem);
+  }
+  .mc .dp{color:var(--c);font-size:clamp(.54rem,1.5cqh,.76rem);font-weight:500;line-height:1.3}
+  .mc .dp i{font-style:normal;font-family:var(--font-mono);display:block;opacity:.85}
+  .mc h3{margin:0;font-family:var(--font-head);font-weight:800;color:var(--ink);font-size:clamp(.72rem,2.15cqh,1.08rem);line-height:1.2;min-height:2.4em;display:grid;place-items:center}
+  .mc .costs{width:100%;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:1.2cqh .5cqw;display:flex;flex-direction:column;gap:.9cqh}
+  .mc .costs div{display:flex;flex-direction:column;gap:.2cqh}
+  .mc .costs div + div{padding-top:.9cqh;border-top:1px dashed rgba(255,255,255,.1)}
+  .mc .k{color:var(--ink-3);font-size:clamp(.5rem,1.38cqh,.7rem)}
+  .mc .costs b{font-family:var(--font-mono);font-weight:600;color:var(--ink);font-size:clamp(.72rem,2.2cqh,1.1rem);direction:ltr}
+  .mc .save{width:100%;padding-top:1.2cqh;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:.3cqh}
+  .mc .save .k{color:var(--teal)}
+  .mc .save b{font-family:var(--font-mono);font-weight:600;color:var(--teal);font-size:clamp(.95rem,3.3cqh,1.65rem);line-height:1.1;direction:ltr}
+  .mc .save small{color:var(--ink-2);font-size:clamp(.48rem,1.3cqh,.66rem)}
+  .ribbon{
+    position:absolute;top:1.1cqh;left:-2.2em;transform:rotate(-45deg);width:7em;text-align:center;
+    background:var(--gold);color:#1a1300;font-family:var(--font-mono);font-weight:600;font-size:clamp(.46rem,1.3cqh,.66rem);letter-spacing:.12em;padding:.15em 0;
+  }
+  .totals{
+    display:grid;grid-template-columns:repeat(3,1fr);margin-top:1.6cqh;
+    background:linear-gradient(90deg,rgba(22,217,168,.14),rgba(34,165,220,.06));
+    border:1px solid var(--line-2);border-radius:12px;padding:1.6cqh 2cqw;
+  }
+  .totals div{display:flex;flex-direction:column;align-items:center;gap:.3cqh}
+  .totals div + div{border-inline-start:1px solid var(--line)}
+  .totals div > span{color:var(--ink-2);font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .totals b{font-family:var(--font-mono);font-weight:600;color:var(--ink);font-size:clamp(1.1rem,4cqh,2rem);line-height:1.1;direction:ltr}
+  .totals .hl b{color:var(--teal)}
+
+  /* demo cards */
+  .screen{
+    width:100%;aspect-ratio:4/3;position:relative;border-radius:8px;
+    background:radial-gradient(circle at 50% 40%,rgba(22,217,168,.2),transparent 65%),#081019;
+    border:1px solid var(--line-2);display:grid;place-items:center;overflow:hidden;
+  }
+  .screen::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px);pointer-events:none}
+  .screen .bot{width:46%;color:var(--teal);animation:float 4.5s ease-in-out infinite}
+  .screen .tag-demo{position:absolute;bottom:.8cqh;inset-inline:0;text-align:center;font-family:var(--font-mono);font-weight:600;font-size:clamp(.48rem,1.35cqh,.68rem);letter-spacing:.3em;color:var(--teal-2)}
+  .stand{width:28%;height:1.2cqh;margin-top:-.4cqh;background:linear-gradient(180deg,#22323c,#15212a);clip-path:polygon(15% 0,85% 0,100% 100%,0 100%)}
+  @keyframes float{0%,100%{transform:translateY(-3%)}50%{transform:translateY(4%)}}
+  @media (prefers-reduced-motion:reduce){ .screen .bot{animation:none} }
+  .demo-btn{
+    width:100%;display:flex;align-items:center;justify-content:center;gap:.4em;
+    padding:1.1cqh .4cqw;border-radius:8px;border:1px solid var(--teal);
+    background:rgba(22,217,168,.12);color:var(--teal-2);
+    font-family:var(--font-head);font-weight:700;font-size:clamp(.62rem,1.8cqh,.92rem);
+    transition:background .2s ease,color .2s ease;
+  }
+  .demo-btn:hover{background:var(--teal);color:#04130e}
+  .demo-btn svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .demo-btn.is-pending{border-style:dashed;background:transparent;color:var(--ink-2)}
+  .demo-btn.is-pending:hover{background:var(--panel-2);color:var(--ink)}
+
+  /* ---------- 14 : voice agent ---------- */
+  .va{display:grid;grid-template-columns:1fr 1fr;gap:2cqw}
+  .va-card{padding:2.8cqh 2.2cqw;gap:1.6cqh}
+  .va-card .hd{display:flex;align-items:center;justify-content:space-between;gap:1cqw}
+  .va-card .hd h3{color:var(--c)}
+  .va-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.9cqw}
+  .va-stat{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:1.4cqh .8cqw;display:flex;flex-direction:column;gap:.4cqh}
+  .va-stat b{direction:ltr;unicode-bidi:isolate;text-align:right;font-family:var(--font-mono);font-weight:600;color:var(--ink);font-size:clamp(.9rem,3.1cqh,1.55rem);line-height:1.1}
+  .va-stat span{color:var(--ink-2);font-size:clamp(.56rem,1.55cqh,.78rem);line-height:1.35}
+  .va-val{display:flex;align-items:center;gap:1cqw;color:var(--ink);font-size:clamp(.66rem,1.85cqh,.94rem);line-height:1.5}
+  .va-val b{font-family:var(--font-mono);color:var(--teal);font-size:1.25em}
+  .chips{display:flex;flex-wrap:wrap;gap:.5cqw}
+  .chip{font-family:var(--font-mono);font-size:clamp(.52rem,1.42cqh,.72rem);color:var(--ink-2);background:var(--bg-2);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:.25em .7em}
+  .ladder{display:flex;align-items:center;gap:.8cqw;font-family:var(--font-mono);font-size:clamp(.6rem,1.7cqh,.86rem);color:var(--ink-2)}
+  .ladder .lt{flex:1;height:8px;border-radius:8px;background:linear-gradient(270deg,rgba(34,211,238,.25),var(--d-ms));position:relative}
+  .ladder b{color:var(--ink)}
+  .banner{
+    display:flex;align-items:center;justify-content:center;gap:1.6cqw;
+    background:linear-gradient(90deg,rgba(22,217,168,.22),rgba(34,211,238,.12));border:1px solid var(--teal);
+    border-radius:12px;padding:1.9cqh 2cqw;font-family:var(--font-head);font-weight:700;color:var(--ink);
+    font-size:clamp(.82rem,2.6cqh,1.3rem);box-shadow:0 0 36px -14px rgba(22,217,168,.6);
+  }
+  .banner b{font-family:var(--font-mono);color:var(--teal-2);font-size:1.25em}
+  .mini{padding:2cqh 1.6cqw;gap:.8cqh}
+  .mini h3{font-size:clamp(.82rem,2.4cqh,1.15rem);color:var(--teal)}
+  .mini p{font-size:clamp(.62rem,1.75cqh,.88rem);line-height:1.5}
+
+  #s14 .s-body,#s16 .s-body{justify-content:center}
+
+  /* ---------- 15 : recommendations ---------- */
+  .recs{display:grid;grid-template-columns:1fr 1fr;gap:2.4cqw;flex:1;min-height:0}
+  .rec-col{border-radius:16px;border:1px solid var(--line);background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+  .rec-col > header{
+    display:flex;align-items:center;justify-content:space-between;padding:2cqh 2.2cqw;
+    font-family:var(--font-head);font-weight:800;font-size:clamp(1rem,3.1cqh,1.55rem);color:#04130e;background:var(--teal);
+  }
+  .rec-col > header .pill{color:#04130e;border-color:rgba(4,19,14,.4)}
+  .rec-col--b{border-color:rgba(34,165,220,.35)}
+  .rec-col--b > header{background:var(--blue);color:#03121b}
+  .rec-col--b > header .pill{color:#03121b;border-color:rgba(3,18,27,.35)}
+  .rec{padding:2.1cqh 2.2cqw;display:flex;gap:1.3cqw;border-top:1px solid rgba(255,255,255,.05);flex:1;transition:background .2s ease}
+  .rec:first-of-type{border-top:0}
+  .rec:hover{background:var(--panel-2)}
+  .rec .idx{font-size:clamp(.95rem,3cqh,1.5rem);opacity:.6}
+  .rec-col--b .rec .idx{color:var(--blue)}
+  .rec h3{margin:0 0 .6cqh;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.88rem,2.55cqh,1.25rem)}
+  .rec p{margin:0;color:var(--ink-2);line-height:1.5;font-size:clamp(.64rem,1.8cqh,.9rem)}
+
+  /* ---------- 16 : gantt ---------- */
+  .gantt{display:grid;grid-template-columns:20cqw repeat(4,1fr);row-gap:1.15cqh;position:relative}
+  .g-q{
+    grid-row:1;position:relative;margin-inline:.4cqw;padding:1.1cqh 0;text-align:center;
+    font-family:var(--font-mono);font-weight:600;color:var(--ink);font-size:clamp(.7rem,2.1cqh,1.05rem);letter-spacing:.06em;
+    background:#13283a;border:1px solid rgba(34,165,220,.35);border-radius:8px;direction:ltr;
+  }
+  .g-q.now{background:rgba(22,217,168,.16);border-color:var(--teal);color:var(--teal-2)}
+  .g-line{grid-row:1/-1;border-inline-start:1px dashed rgba(255,255,255,.07);pointer-events:none}
+  .g-lbl{grid-column:1;display:flex;align-items:center;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.7rem,2.05cqh,1.02rem);padding-inline-end:1cqw}
+  .g-bar{
+    position:relative;height:3.7cqh;min-height:18px;margin-inline:.4cqw;border-radius:6px;background:var(--c);
+    display:flex;align-items:center;justify-content:center;padding-inline:1cqw;overflow:hidden;
+    color:#06121a;font-size:clamp(.54rem,1.55cqh,.8rem);font-weight:500;white-space:nowrap;
+    box-shadow:0 6px 18px -10px var(--c);
+  }
+  .g-bar::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 55%);pointer-events:none}
+  .g-strat{--c:var(--violet)}
+  .g-tact{--c:#4f86e8}
+  .g-impl{--c:var(--teal)}
+  .g-adopt{--c:var(--gold)}
+  .g-legend{display:flex;gap:2.4cqw;justify-content:flex-start;margin-top:2cqh;color:var(--ink-2);font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .g-legend span{display:flex;align-items:center;gap:.5em}
+  .g-legend i{width:1.8em;height:.8em;border-radius:3px;background:var(--c)}
+
+  /* ---------- 17 : risks vs opportunities ---------- */
+  .ro{display:grid;grid-template-columns:1fr 1fr;gap:2.4cqw;flex:1;min-height:0}
+  .ro-col{display:flex;flex-direction:column;gap:1.2cqh}
+  .ro-col > header{display:flex;align-items:center;gap:.8cqw;font-family:var(--font-head);font-weight:800;font-size:clamp(1rem,3.1cqh,1.55rem);color:var(--c);padding-bottom:.6cqh}
+  .ro-col > header svg{width:1.3em;height:1.3em}
+  .ro-item{
+    flex:1;background:var(--panel);border:1px solid rgba(255,255,255,.06);border-inline-start:3px solid var(--c);border-radius:10px;
+    padding:1.6cqh 1.6cqw;display:flex;flex-direction:column;gap:.6cqh;transition:background .2s ease, transform .2s ease;
+  }
+  .ro-item:hover{background:var(--panel-2);transform:translateX(-4px)}
+  .ro-item h3{margin:0;font-family:var(--font-head);font-weight:700;color:var(--ink);font-size:clamp(.82rem,2.4cqh,1.18rem)}
+  .ro-item p{margin:0;color:var(--ink-2);line-height:1.5;font-size:clamp(.6rem,1.7cqh,.86rem)}
+  .ro-col--risk{--c:var(--red)}
+  .ro-col--opp{--c:var(--teal)}
+
+  /* ---------- 18 : thanks ---------- */
+  .team{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4cqw;margin:auto 0;width:100%}
+  .person{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:3.6cqh 1.5cqw;display:flex;flex-direction:column;align-items:center;gap:1.1cqh;text-align:center;
+    transition:border-color .2s ease, transform .2s ease;
+  }
+  .person:hover{border-color:var(--line-2);transform:translateY(-4px)}
+  .person .avatar{
+    width:clamp(60px,15cqh,112px);aspect-ratio:1;border-radius:50%;
+    border:2px solid var(--teal);padding:3px;flex:none;overflow:hidden;
+    background:radial-gradient(circle,rgba(22,217,168,.14),transparent 70%);
+    box-shadow:0 0 30px -8px rgba(22,217,168,.45);
+  }
+  .person .avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+  .person .nm{font-family:var(--font-head);font-weight:800;color:var(--teal);font-size:clamp(.95rem,2.9cqh,1.4rem)}
+  .person .role{color:var(--ink);font-size:clamp(.72rem,2cqh,.98rem)}
+  .person .contact{margin-top:.9cqh;display:flex;flex-direction:column;gap:.45cqh;color:var(--ink-2);font-size:clamp(.68rem,1.85cqh,.9rem)}
+  .person .contact span{font-family:var(--font-mono);direction:ltr}
+  .thanks-foot{display:block;margin:3.4cqh auto 0;font-family:var(--font-mono);letter-spacing:.16em;color:var(--teal);text-decoration:none;font-size:clamp(.72rem,2cqh,1rem)}
+  .thanks-foot:hover{text-decoration:underline}
+
+  /* ---------- chrome ---------- */
+  .wordmark{
+    position:absolute;z-index:25;top:4.6cqh;left:5cqw;
+    display:flex;align-items:center;gap:1.1cqw;direction:ltr;
+    transition:opacity .35s ease;pointer-events:none;
+  }
+  .wordmark .sg{height:clamp(14px,3.6cqh,24px);width:auto}
+  .wordmark .cbc{height:clamp(18px,4.8cqh,34px);width:auto}
+  .wordmark i{width:1px;height:3.6cqh;background:rgba(255,255,255,.18)}
+  .conf{
+    position:absolute;z-index:25;bottom:2.6cqh;left:5cqw;direction:rtl;
+    font-family:var(--font-mono);font-size:clamp(.5rem,1.35cqh,.68rem);letter-spacing:.18em;color:var(--ink-3);
+    transition:opacity .35s ease;pointer-events:none;
+  }
+  .deck.on-title .wordmark,.deck.on-title .conf{opacity:0}
+
+  .hud{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:13px;z-index:30;
+    width:min(95vw,1360px);
+    display:flex;align-items:center;gap:14px;
+    padding:0 4px;color:var(--ink-3);font-size:12px;
+  }
+  .hud .bar{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.09);overflow:hidden}
+  .hud .bar > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--blue));transition:width .45s ease}
+  .hud .count{direction:ltr;font-family:var(--font-mono);letter-spacing:.06em;cursor:pointer;white-space:nowrap}
+  .hud .count:hover{color:var(--teal)}
+  .hud button{
+    width:30px;height:30px;flex:none;display:grid;place-items:center;
+    border:1px solid rgba(255,255,255,.12);border-radius:8px;color:var(--ink-2);
+    font-size:13px;transition:border-color .2s ease, color .2s ease;
+  }
+  .hud button:hover{border-color:var(--line-2);color:var(--teal)}
+  .hud button[disabled]{opacity:.3;pointer-events:none}
+  .hud button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+  .nav-arrow{
+    position:fixed;top:50%;transform:translateY(-50%);z-index:35;
+    width:46px;height:46px;flex:none;border-radius:50%;
+    display:grid;place-items:center;font-size:17px;line-height:1;
+    background:rgba(11,19,31,.62);
+    border:1px solid var(--line-2);
+    color:var(--ink);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    box-shadow:0 8px 24px -10px rgba(0,0,0,.6);
+    transition:background .2s ease, color .2s ease, border-color .2s ease, opacity .2s ease;
+  }
+  .nav-arrow:hover{background:var(--teal);color:#04130e;border-color:var(--teal)}
+  .nav-arrow svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+  .nav-arrow--prev{right:16px}
+  .nav-arrow--next{left:16px}
+  .nav-arrow[disabled]{opacity:.22;pointer-events:none}
+  .deck.on-title .nav-arrow{background:rgba(11,19,31,.35)}
+  @media (max-width:540px){ .nav-arrow{width:38px;height:38px} .nav-arrow svg{width:16px;height:16px} }
+
+  .toast{
+    position:fixed;left:50%;bottom:60px;transform:translate(-50%,20px);z-index:70;opacity:0;pointer-events:none;
+    background:var(--bg-2);border:1px solid var(--line-2);border-radius:10px;padding:10px 18px;color:var(--ink);font-size:14px;
+    transition:opacity .25s ease, transform .25s ease;box-shadow:0 14px 40px -14px rgba(0,0,0,.8);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+
+  /* ---------- overview ---------- */
+  .overview{
+    position:fixed;inset:0;z-index:50;
+    background:rgba(6,10,18,.9);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    padding:clamp(20px,4vw,48px);
+    display:flex;flex-direction:column;gap:20px;
+  }
+  .ov-head{display:flex;align-items:center;justify-content:space-between;color:var(--ink)}
+  .ov-head span{font-family:var(--font-head);font-weight:700;font-size:16px}
+  .ov-close{
+    width:34px;height:34px;border:1px solid var(--line-2);border-radius:8px;
+    color:var(--ink-2);display:grid;place-items:center;font-size:14px;
+  }
+  .ov-close:hover{color:var(--teal)}
+  .ov-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:14px;overflow:auto;padding-bottom:10px;align-content:start;
+  }
+  .ov{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;text-align:start;display:flex;flex-direction:column;gap:7px;min-height:112px;
+    transition:border-color .2s ease, transform .2s ease, background .2s ease;
+  }
+  .ov:hover{border-color:var(--line-2);transform:translateY(-3px);background:var(--panel-2)}
+  .ov .n{font-family:var(--font-mono);color:var(--teal);font-size:12px;letter-spacing:.08em}
+  .ov .t{font-family:var(--font-head);font-weight:700;font-size:15px;color:var(--ink);line-height:1.25}
+  .ov .s{font-size:10px;color:var(--ink-3);letter-spacing:.12em;margin-top:auto}
+  .ov.current{border-color:var(--teal);box-shadow:0 0 0 1px var(--teal) inset}
+
+  /* ---------- help ---------- */
+  .help{position:fixed;inset:0;z-index:60;background:rgba(6,10,18,.82);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:grid;place-items:center}
+  .help-card{background:var(--bg-2);border:1px solid var(--line-2);border-radius:16px;padding:30px 38px;max-width:330px}
+  .help-card b{font-family:var(--font-head);color:var(--teal);font-size:17px;display:block;margin-bottom:16px}
+  .help-card ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px;color:var(--ink-2);font-size:14px}
+  .help-card li{display:flex;align-items:center;gap:10px}
+  kbd{
+    font-family:var(--font-mono);background:var(--panel-2);border:1px solid var(--line);
+    border-radius:5px;padding:.15em .55em;font-size:.85em;color:var(--teal);white-space:nowrap;
+  }
+
+  /* ---------- narrow stage (phones) ---------- */
+  @container stage (max-width: 620px){
+    .slide{padding:6cqh 5cqw 8cqh}
+    .cols-2,.cols-3,.cols-4,.agenda,.why,.teams,.va,.recs,.ro,.team,.exec,.mx{grid-template-columns:1fr}
+    .flow{grid-template-columns:1fr 1fr}
+    .step:not(:last-child)::after{display:none}
+    .journey{grid-template-columns:1fr 1fr}
+    .journey::before{display:none}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .mvp{grid-template-columns:repeat(2,1fr)}
+    .tbl-wrap{overflow-x:auto}
+    .gantt{grid-template-columns:28cqw repeat(4,1fr)}
+    .wordmark{display:none}
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1c.6 6 4.9 10.3 11 11-6.1.7-10.4 5-11 11-.6-6-4.9-10.3-11-11 6.1-.7 10.4-5 11-11z"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 3.5 2.8 19.5h18.4zM12 10v4.2M12 17.2v.1"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-bot" viewBox="0 0 120 120">
+    <rect x="30" y="36" width="60" height="48" rx="16" fill="none" stroke="currentColor" stroke-width="4"/>
+    <circle cx="48" cy="59" r="6" fill="currentColor"/>
+    <circle cx="72" cy="59" r="6" fill="currentColor"/>
+    <path d="M50 72c6 5 14 5 20 0" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <line x1="60" y1="22" x2="60" y2="36" stroke="currentColor" stroke-width="4"/>
+    <circle cx="60" cy="17" r="5" fill="currentColor"/>
+    <line x1="30" y1="56" x2="20" y2="56" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+    <line x1="90" y1="56" x2="100" y2="56" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<div class="deck" dir="rtl">
+  <div class="stage">
+
+    <!-- 1 — title -->
+    <section class="slide" id="s1" data-title="תהליך AI Discovery" data-section="פתיחה">
+      <img class="hero-bg" src="assets/hero-ai.jpg" alt="">
+      <div class="hero">
+        <div class="lockup" data-reveal>
+          <img class="sg" src="assets/solugen-logo.png" alt="SoluGen AI">
+          <span class="x">×</span>
+          <img class="cbc" src="assets/cbc-logo.png" alt="CBC Israel">
+        </div>
+        <div class="tagline" data-reveal>CBC ISRAEL × SOLUGEN AI · EXECUTIVE SUMMARY</div>
+        <div class="rule" data-reveal></div>
+        <h1 data-reveal><span class="w">תהליך</span> AI Discovery</h1>
+        <div class="subtitle" data-reveal>סיכום ממצאים, תובנות והמלצות</div>
+        <div class="foot" data-reveal>מצגת הנהלה&nbsp;&nbsp;·&nbsp;&nbsp;4 באוקטובר 2026&nbsp;&nbsp;·&nbsp;&nbsp;סודי מסחרי</div>
+      </div>
+    </section>
+
+    <!-- 2 — agenda -->
+    <section class="slide" id="s2" data-title="אג׳נדה: מבנה המצגת" data-section="אג׳נדה">
+      <div class="s-body">
+        <div class="agenda">
+          <div class="list">
+            <button class="a-item" data-reveal data-goto="4"><span class="circle">01</span>מטרת ה-AI Discovery</button>
+            <button class="a-item" data-reveal data-goto="6"><span class="circle">02</span>שיטת העבודה והמסע</button>
+            <button class="a-item" data-reveal data-goto="8"><span class="circle">03</span>תמצית מנהלים ומיפוי התהליכים</button>
+            <button class="a-item" data-reveal data-goto="11"><span class="circle">04</span>ערך עסקי מול מורכבות</button>
+            <button class="a-item" data-reveal data-goto="12"><span class="circle">05</span>תרחישים נבחרים למימוש</button>
+            <button class="a-item" data-reveal data-goto="13"><span class="circle">06</span>דוגמאות לפתרונות</button>
+            <button class="a-item" data-reveal data-goto="15"><span class="circle">07</span>המלצות ותכנית עבודה</button>
+            <button class="a-item" data-reveal data-goto="17"><span class="circle">08</span>סיכונים והזדמנויות</button>
+          </div>
+          <div class="big" data-reveal>אג׳נדה:<br>מבנה המצגת<small>AI DISCOVERY · EXECUTIVE SUMMARY</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 — meeting goals -->
+    <section class="slide" id="s3" data-title="מטרת הפגישה" data-section="פתיחה">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span>פתיחה</div>
+        <h2 class="s-title">מטרת הפגישה</h2>
+      </header>
+      <div class="s-body">
+        <div class="flow">
+          <div class="step" data-reveal><span class="n">01</span><h3>שיקוף עבודת ה-AI Discovery</h3><span class="bar"></span></div>
+          <div class="step" data-reveal><span class="n">02</span><h3>מעבר על התוצרים השונים</h3><span class="bar"></span></div>
+          <div class="step" data-reveal><span class="n">03</span><h3>הבנת הערך לתרחישים נבחרים</h3><span class="bar"></span></div>
+          <div class="step" data-reveal><span class="n">04</span><h3>אישרור עקרוני לשלבים הבאים</h3><span class="bar"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 — why we started / approach -->
+    <section class="slide" id="s4" data-title="מטרת ה-AI Discovery" data-section="01 · מטרת ה-AI Discovery">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">01</span> · מטרת ה-AI Discovery</div>
+        <h2 class="s-title">מטרת ה-AI Discovery</h2>
+      </header>
+      <div class="s-body">
+        <div class="why">
+          <div class="why-panel" data-reveal>
+            <h3>למה יצאנו לדרך</h3>
+            <p>CBC ביקשה לבצע <b>מיפוי רוחבי</b> של הזדמנויות הבינה המלאכותית בכלל מערכי הארגון.</p>
+            <p><b>מטרת התהליך:</b> לזהות את האתגרים והכאבים העסקיים בתהליכי העבודה השונים, להעריך את פוטנציאל החיסכון והערך העסקי, ולבחון את הבשלות הטכנולוגית של כל יוזמה, במטרה לתעדף השקעות AI בעלות השפעה עסקית משמעותית ויכולת יישום גבוהה.</p>
+            <p class="quote">התוצר אשר נבנה הינו בתפיסה של מה מומלץ לקדם עכשיו, מה להמתין, ומה ייפתר על ידי המערכות העתידיות.</p>
+          </div>
+          <div class="approach">
+            <h3 class="ap-title" data-reveal>תפיסת העבודה</h3>
+            <div class="ap" data-reveal><span class="n">1</span><div><b>מיפוי הזדמנויות</b><span>זיהוי תרחישי AI בכל מערך, מהכאב ועד זיהוי פתרון בתפיסת Business First, כולל תצפיות פרטניות מול דרגי השטח.</span></div></div>
+            <div class="ap" data-reveal><span class="n">2</span><div><b>תיעדוף מבוסס ערך</b><span>דירוג לפי השפעה עסקית מול מורכבות מימוש.</span></div></div>
+            <div class="ap" data-reveal><span class="n">3</span><div><b>הערכת בשלות</b><span>הערכת מוכנות הנתונים, המערכות והתשתיות למימוש.</span></div></div>
+            <div class="ap" data-reveal><span class="n">4</span><div><b>מתווה ליישום</b><span>בניית תכנית פעולה מבוססת ניצחונות מהירים כבסיס להצלחה.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 — guiding principles -->
+    <section class="slide" id="s5" data-title="הנחות יסוד" data-section="01 · מטרת ה-AI Discovery">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">01</span> · מטרת ה-AI Discovery</div>
+        <h2 class="s-title">הנחות יסוד</h2>
+      </header>
+      <div class="s-body">
+        <div class="grid cols-3">
+          <div class="card" data-reveal>
+            <svg class="spark"><use href="#i-spark"/></svg>
+            <span class="idx">01</span>
+            <h3>AI הוא כלי עסקי ולא פרויקט טכנולוגי</h3>
+            <p>הצלחת היוזמות תימדד לפי ערך עסקי: חיסכון, שיפור שירות, הגדלת הכנסות או הפחתת סיכונים. הטכנולוגיה היא אמצעי ולא מטרה.</p>
+          </div>
+          <div class="card" data-reveal>
+            <svg class="spark"><use href="#i-spark"/></svg>
+            <span class="idx">02</span>
+            <h3>יוזמות מהירות</h3>
+            <p>קיימות יוזמות שניתן לממש תוך חודשים בודדים. לצד זאת קיימות יוזמות מורכבות יותר, הדורשות הכנת נתונים, אינטגרציות ושינוי תהליכים.</p>
+          </div>
+          <div class="card" data-reveal>
+            <svg class="spark"><use href="#i-spark"/></svg>
+            <span class="idx">03</span>
+            <h3>תאימות לארכיטקטורה הארגונית</h3>
+            <p>כל יוזמת AI תיבחן בהתאם לתשתיות הקיימות בארגון, בדגש על <strong>SAP</strong> ו-<strong>Azure</strong>, תוך עמידה בדרישות אבטחת המידע, הפרטיות והממשל התאגידי של CBC.</p>
+          </div>
+        </div>
+        <div class="note" data-reveal>התוצר נבנה בתפיסה של <b>מה לקדם עכשיו</b>, <b>מה להמתין</b>, ו<b>מה ייפתר על ידי המערכות העתידיות</b>.</div>
+      </div>
+    </section>
+
+    <!-- 6 — teams -->
+    <section class="slide" id="s6" data-title="צוותי העבודה ומערכי הפעילות" data-section="02 · שיטת העבודה">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">02</span> · שיטת העבודה והמסע</div>
+        <h2 class="s-title">צוותי העבודה ומערכי הפעילות</h2>
+      </header>
+      <div class="s-body">
+        <div class="teams">
+          <div class="col">
+            <h3 class="col-title" data-reveal>צוותי העבודה המשותפים</h3>
+            <div class="card party" data-reveal style="--c:var(--teal)"><span class="dot"></span><div><b>SoluGen AI</b><span>דור בלמס, אדיר אורן, נחמיה קנלסקי, לירז אליאס</span></div></div>
+            <div class="card party" data-reveal style="--c:var(--gold)"><span class="dot"></span><div><b>CBC Israel</b><span>שרון משען (Owner) ומובילי המערכים, בליווי מערכות מידע לאורך התהליך</span></div></div>
+            <div class="bigstat" data-reveal><span class="v"><span data-count="50">50</span>+</span><p>סה״כ בעלי עניין מצד CBC שלקחו חלק בתהליך, מסמנכ״לים ועד מובילי תחום ומקדמי מכירות בשטח.</p></div>
+          </div>
+          <div class="col">
+            <h3 class="col-title" data-reveal>7 מערכי העבודה</h3>
+            <div class="depts">
+              <div class="dept" data-reveal style="--c:var(--d-hr)"><b>משאבי אנוש</b><span class="v" data-count="27">27</span><small>תרחישים</small></div>
+              <div class="dept" data-reveal style="--c:var(--d-mar)"><b>שיווק</b><span class="v" data-count="21">21</span><small>תרחישים</small></div>
+              <div class="dept" data-reveal style="--c:var(--d-fin)"><b>כספים</b><span class="v" data-count="16">16</span><small>תרחישים</small></div>
+              <div class="dept" data-reveal style="--c:var(--d-sales)"><b>מכירות</b><span class="v" data-count="12">12</span><small>תרחישים</small></div>
+              <div class="dept" data-reveal style="--c:var(--d-tera)"><b>מפעל טרה</b><span class="v" data-count="12">12</span><small>תרחישים</small></div>
+              <div class="dept" data-reveal style="--c:var(--d-pur)"><b>רכש</b><span class="v" data-count="9">9</span><small>תרחישים</small></div>
+              <div class="dept dept--last" data-reveal style="--c:var(--d-supp)"><b>שרשרת אספקה</b><span class="v" data-count="8">8</span><small>תרחישים</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 — the journey -->
+    <section class="slide" id="s7" data-title="המסע שעברנו" data-section="02 · שיטת העבודה">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">02</span> · שיטת העבודה והמסע</div>
+        <h2 class="s-title">המסע שעברנו</h2>
+        <p class="s-sub">מפברואר 2026 עד היום: מפגישות ההתנעה בכל מערך, דרך העמקה, מיפוי מערכות ו-ROI, ועד סיכום הממצאים המוצג היום.</p>
+      </header>
+      <div class="s-body">
+        <div class="journey">
+          <div class="ph" data-reveal>
+            <span class="ph-node">01</span>
+            <div class="ph-card"><span class="ph-date">פברואר 2026</span><span class="ph-title">מערכים ארגוניים</span><span class="ph-v" data-count="7">7</span><span class="ph-l">פגישות התנעה</span>
+              <ul><li>מיפוי יוזקייסים ראשוני</li><li>היכרות עם המערכים</li><li>תיאום ציפיות</li></ul></div>
+          </div>
+          <div class="ph" data-reveal>
+            <span class="ph-node">02</span>
+            <div class="ph-card"><span class="ph-date">מרץ 2026</span><span class="ph-title">הזדמנויות AI</span><span class="ph-v" data-count="105">105</span><span class="ph-l">תרחישים</span>
+              <ul><li>פגישות העמקה ותצפיות</li><li>הרחבת מיפוי התהליכים</li><li>פידבק מהשטח</li></ul></div>
+          </div>
+          <div class="ph" data-reveal>
+            <span class="ph-node">03</span>
+            <div class="ph-card"><span class="ph-date">אפריל 2026</span><span class="ph-title">מקורות מידע</span><span class="ph-v" data-count="56">56</span><span class="ph-l">מערכות ומקורות</span>
+              <ul><li>סקירת SAP ו-Microsoft</li><li>מיפוי מקורות מידע</li><li>בדיקת מוכנות</li></ul></div>
+          </div>
+          <div class="ph" data-reveal>
+            <span class="ph-node">04</span>
+            <div class="ph-card"><span class="ph-date">מאי 2026</span><span class="ph-title">תיעדוף #1</span><span class="ph-v" data-count="29">29</span><span class="ph-l">תרחישים בעדיפות 1</span>
+              <ul><li>מיפוי פרטני של תהליכים</li><li>מוכנות מידע</li><li>פתרונות אפשריים</li></ul></div>
+          </div>
+          <div class="ph" data-reveal>
+            <span class="ph-node">05</span>
+            <div class="ph-card"><span class="ph-date">מאי–יוני 2026</span><span class="ph-title">MVP</span><span class="ph-v" data-count="7">7</span><span class="ph-l">תרחישים בעלי פוטנציאל למימוש ראשוני</span>
+              <ul><li>הגדרת Quick Wins</li><li>הגדרת פתרונות והערכות</li><li>תפיסת פתרון</li></ul></div>
+          </div>
+          <div class="ph ph--now" data-reveal>
+            <span class="here">אנחנו כאן</span>
+            <span class="ph-node">06</span>
+            <div class="ph-card"><span class="ph-date">יוני 2026</span><span class="ph-title">המלצות למימוש</span><span class="ph-v" data-count="3">3</span><span class="ph-l">תהליכים בעלי ערך</span>
+              <ul><li>תהליכים בעלי ערך</li><li>תובנות</li><li>המלצות לשלבי המשך</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 — executive summary -->
+    <section class="slide slide--dense" id="s8" data-title="תמצית מנהלים: מבט על תרחישים" data-section="03 · תמצית מנהלים">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">03</span> · תמצית מנהלים</div>
+        <h2 class="s-title">תמצית מנהלים: מבט על תרחישים</h2>
+      </header>
+      <div class="s-body">
+        <div class="kpis">
+          <div class="kpi" data-reveal><span class="v" data-count="105">105</span><span class="l">תרחישים זוהו</span></div>
+          <div class="kpi" data-reveal><span class="v" data-count="98">98</span><span class="l">לאחר איחוד</span></div>
+          <div class="kpi" data-reveal><span class="v" data-count="29">29</span><span class="l">עדיפות 1</span></div>
+          <div class="kpi" data-reveal><span class="v" data-count="7">7</span><span class="l">MVP</span></div>
+          <div class="kpi kpi--hero" data-reveal><span class="v">₪<span data-count="9.4" data-dec="1">9.4</span>M</span><span class="l">ערך ישיר שנתי עבור תרחישי עדיפות 1</span></div>
+        </div>
+        <div class="exec">
+          <div class="panel" data-reveal>
+            <h4>תיעדוף תרחישים</h4>
+            <div class="prios">
+            <div class="prio" style="--c:var(--teal)">
+              <span class="pv" data-count="29">29</span>
+              <div class="pl"><b>עדיפות 1 <span>· למימוש מיידי</span></b><div class="track"><i class="grow" style="width:72.5%;--g:0"></i></div></div>
+            </div>
+            <div class="prio" style="--c:var(--blue)">
+              <span class="pv" data-count="40">40</span>
+              <div class="pl"><b>עדיפות 2 <span>· להמשך בחינה</span></b><div class="track"><i class="grow" style="width:100%;--g:1"></i></div></div>
+            </div>
+            <div class="prio" style="--c:var(--ink-3)">
+              <span class="pv" data-count="36">36</span>
+              <div class="pl"><b>עדיפות 3 <span>· להמשך בחינה</span></b><div class="track"><i class="grow" style="width:90%;--g:2"></i></div></div>
+            </div>
+            </div>
+          </div>
+          <div class="panel" data-reveal>
+            <h4>היקף פגישות</h4>
+            <div class="meet">
+              <div class="tot"><span class="v" data-count="201">201</span><span>פגישות תועדו</span></div>
+              <div class="split"><i class="grow" style="flex:110;background:var(--teal)"></i><i class="grow" style="flex:91;background:var(--blue);--g:2"></i></div>
+              <div class="split-legend">
+                <span><span class="dot" style="--c:var(--teal)"></span><b data-count="110">110</b>מול לקוח</span>
+                <span><span class="dot" style="--c:var(--blue)"></span><b data-count="91">91</b>פנימיות</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel" data-reveal>
+            <h4>תרחישים לפי מערך</h4>
+            <div class="hbars">
+              <div class="hb" style="--c:var(--d-hr);--w:100%"><span>משאבי אנוש</span><div class="t"><i class="grow" style="width:var(--w);--g:0"></i><b>27</b></div></div>
+              <div class="hb" style="--c:var(--d-mar);--w:70.4%"><span>שיווק</span><div class="t"><i class="grow" style="width:var(--w);--g:1"></i><b>19</b></div></div>
+              <div class="hb" style="--c:var(--d-fin);--w:59.3%"><span>כספים</span><div class="t"><i class="grow" style="width:var(--w);--g:2"></i><b>16</b></div></div>
+              <div class="hb" style="--c:var(--d-sales);--w:44.4%"><span>מכירות</span><div class="t"><i class="grow" style="width:var(--w);--g:3"></i><b>12</b></div></div>
+              <div class="hb" style="--c:var(--d-tera);--w:44.4%"><span>מפעל טרה</span><div class="t"><i class="grow" style="width:var(--w);--g:4"></i><b>12</b></div></div>
+              <div class="hb" style="--c:var(--d-pur);--w:37%"><span>רכש</span><div class="t"><i class="grow" style="width:var(--w);--g:5"></i><b>10</b></div></div>
+              <div class="hb" style="--c:var(--d-supp);--w:29.6%"><span>שרשרת אספקה</span><div class="t"><i class="grow" style="width:var(--w);--g:6"></i><b>8</b></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 — table part A (rendered from SCENARIOS) -->
+    <section class="slide slide--dense" id="s9" data-title="טבלת סיכום · חלק א (1–16)" data-section="03 · תמצית מנהלים">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">03</span> · מיפוי התהליכים</div>
+        <h2 class="s-title">טבלת סיכום התהליכים המובילים</h2>
+        <p class="s-sub">29 תרחישים בעדיפות ראשונה&nbsp;&nbsp;|&nbsp;&nbsp;חלק א (1–16)</p>
+      </header>
+      <div class="s-body">
+        <div class="tbl-wrap" data-reveal data-table="1-16"></div>
+      </div>
+    </section>
+
+    <!-- 10 — table part B -->
+    <section class="slide slide--dense" id="s10" data-title="טבלת סיכום · חלק ב (17–29)" data-section="03 · תמצית מנהלים">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">03</span> · מיפוי התהליכים</div>
+        <h2 class="s-title">טבלת סיכום התהליכים המובילים</h2>
+        <p class="s-sub">29 תרחישים בעדיפות ראשונה&nbsp;&nbsp;|&nbsp;&nbsp;חלק ב (17–29)</p>
+      </header>
+      <div class="s-body">
+        <div class="tbl-wrap" data-reveal data-table="17-29"></div>
+        <div class="tbl-legend" data-reveal>
+          <span><span class="cx cx--low"><i></i></span>מורכבות נמוכה</span>
+          <span><span class="cx cx--mid"><i></i></span>בינונית</span>
+          <span><span class="cx cx--high"><i></i></span>גבוהה</span>
+          <span><span class="tag tag--mvp">MVP</span>נבחר למימוש ראשוני</span>
+          <span><span class="tag tag--qw">QW</span>Quick Win</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 — value vs complexity matrix (bubbles rendered from MATRIX) -->
+    <section class="slide slide--dense" id="s11" data-title="ערך עסקי מול מורכבות יישום" data-section="04 · ערך מול מורכבות">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">04</span> · ערך עסקי מול מורכבות</div>
+        <h2 class="s-title">ערך עסקי מול מורכבות יישום</h2>
+        <p class="s-sub">מבט על: מורכבות המימוש מול הערך העסקי של כל תרחיש. הצבע מציין את המערך — מעבר עם העכבר לפרטים, לחיצה על מקרא לסינון.</p>
+      </header>
+      <div class="s-body">
+        <div class="mx" data-reveal>
+          <div class="mx-frame">
+            <div class="mx-y">
+              <span style="top:14%">גבוה</span><span style="top:50%">בינוני</span><span style="top:86%">נמוך</span>
+              <span class="axis">ערך עסקי</span>
+            </div>
+            <div class="mx-plot">
+              <div class="zone"></div>
+              <span class="zone-l">ערך גבוה · מימוש מהיר</span>
+              <div class="gl" style="left:33.33%;top:0;bottom:0;width:1px"></div>
+              <div class="gl" style="left:66.66%;top:0;bottom:0;width:1px"></div>
+              <div class="gl" style="top:33.33%;left:0;right:0;height:1px"></div>
+              <div class="gl" style="top:66.66%;left:0;right:0;height:1px"></div>
+            </div>
+            <div class="mx-x">
+              <span style="left:0%">0</span><span style="left:33.33%">3</span><span style="left:66.66%">6</span><span style="left:100%">9+</span>
+              <span class="axis">מורכבות · ציר זמן (חודשים)</span>
+            </div>
+          </div>
+          <div class="mx-legend">
+            <h4>מקרא</h4>
+            <!-- filled by script -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12 — 7 MVP scenarios -->
+    <section class="slide slide--dense" id="s12" data-title="7 תרחישים פוטנציאליים להתחלה" data-section="05 · תרחישים נבחרים">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">05</span> · תרחישים נבחרים למימוש</div>
+        <h2 class="s-title">7 תרחישים פוטנציאליים להתחלה</h2>
+        <p class="s-sub">עלות מימוש חד-פעמית מול פוטנציאל חיסכון שנתי, על פי 7 תהליכי ה-MVP שנבחרו</p>
+      </header>
+      <div class="s-body">
+        <div class="mvp">
+          <div class="mc" data-reveal style="--c:var(--d-hr)"><span class="ribbon">QW</span><span class="n">1</span><span class="dp">משאבי אנוש<i>HR-305</i></span><h3>קליטה וסינון קו״ח</h3>
+            <div class="costs"><div><span class="k">עלות מימוש</span><b>₪260K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪75K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪250K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-pur)"><span class="n">2</span><span class="dp">רכש<i>PUR-331</i></span><h3>השוואת מסמכים והסכמים</h3>
+            <div class="costs"><div><span class="k">עלות מימוש</span><b>₪85K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪8K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>—</b><small>ערך עקיף</small></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-pur)"><span class="n">3</span><span class="dp">רכש<i>PUR-417</i></span><h3>ניהול תהליך רכש הזמנות קטנות</h3>
+            <div class="costs"><div><span class="k">עלות מימוש</span><b>₪650K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪180K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪650K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-sales)"><span class="ribbon">QW</span><span class="n">4</span><span class="dp">מכירות<i>SALES-348</i></span><h3>עדכון Master Data ב-SAP</h3>
+            <div class="costs"><div><span class="k">עלות מימוש</span><b>₪280K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪75K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪432K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-fin)"><span class="n">5</span><span class="dp">כספים<i>FIN-370</i></span><h3>התחשבנות עם לקוחות</h3>
+            <div class="costs"><div><span class="k">עלות מימוש</span><b>₪840K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪150K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪500K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-supp)"><span class="ribbon">QW</span><span class="n">6</span><span class="dp">שרשרת אספקה<i>SUPP-396</i></span><h3>אוטומציית העמסת משאית</h3>
+            <div class="costs"><div><span class="k">עלות מימוש</span><b>₪550K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪20K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪950K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-tera)"><span class="ribbon">QW</span><span class="n">7</span><span class="dp">מפעל טרה<i>MAN-416</i></span><h3>ניתוח תקלות ייצור Online-POC</h3>
+            <div class="costs"><div><span class="k">עלות מימוש · MVP*</span><b>₪200K</b></div><div><span class="k">צריכה + שרתים שנתי</span><b>₪10K</b></div></div>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪2.0M</b><small>*מימוש מלא: ₪2M</small></div></div>
+        </div>
+        <div class="totals" data-reveal>
+          <div class="hl"><span>חיסכון שנתי מצטבר</span><b>₪<span data-count="4.78" data-dec="2">4.78</span>M</b></div>
+          <div><span>עלות מימוש כוללת (חד-פעמי)</span><b>₪<span data-count="2.86" data-dec="2">2.86</span>M</b></div>
+          <div><span>עלות שנתית · צריכה + שרתים</span><b>₪<span data-count="518">518</span>K</b></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 — solution demos (links live in DEMO_LINKS at the top of the script) -->
+    <section class="slide slide--dense" id="s13" data-title="הצגת דוגמאות לפתרונות" data-section="06 · דוגמאות לפתרונות">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">06</span> · דוגמאות לפתרונות</div>
+        <h2 class="s-title">הצגת דוגמאות לפתרונות</h2>
+        <p class="s-sub">DEMO חי לכל אחד מתהליכי ה-MVP — לחיצה על הכפתור פותחת את הפתרון בלשונית חדשה</p>
+      </header>
+      <div class="s-body">
+        <div class="mvp">
+          <div class="mc" data-reveal style="--c:var(--d-hr)"><span class="ribbon">QW</span><span class="n">1</span><span class="dp">משאבי אנוש<i>HR-305</i></span><h3>קליטה וסינון קו״ח</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="1" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪250K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-pur)"><span class="n">2</span><span class="dp">רכש<i>PUR-331</i></span><h3>השוואת מסמכים והסכמים</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="2" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>—</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-pur)"><span class="n">3</span><span class="dp">רכש<i>PUR-417</i></span><h3>ניהול תהליך רכש הזמנות קטנות</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="3" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪650K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-sales)"><span class="ribbon">QW</span><span class="n">4</span><span class="dp">מכירות<i>SALES-348</i></span><h3>עדכון Master Data ב-SAP</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="4" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪432K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-fin)"><span class="n">5</span><span class="dp">כספים<i>FIN-370</i></span><h3>התחשבנות עם לקוחות</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="5" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪500K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-supp)"><span class="ribbon">QW</span><span class="n">6</span><span class="dp">שרשרת אספקה<i>SUPP-396</i></span><h3>אוטומציית העמסת משאית</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="6" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪950K</b></div></div>
+          <div class="mc" data-reveal style="--c:var(--d-tera)"><span class="ribbon">QW</span><span class="n">7</span><span class="dp">מפעל טרה<i>MAN-416</i></span><h3>ניתוח תקלות ייצור Online-POC</h3>
+            <div class="screen"><svg class="bot"><use href="#i-bot"/></svg><span class="tag-demo">DEMO · AI</span></div><span class="stand"></span>
+            <a class="demo-btn" data-demo="7" target="_blank" rel="noopener noreferrer">פתיחת הדמו <svg viewBox="0 0 24 24"><use href="#i-ext"/></svg></a>
+            <div class="save"><span class="k">חיסכון שנתי פוטנציאלי</span><b>₪2.0M</b></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 — unified voice agent MS-01 -->
+    <section class="slide slide--dense" id="s14" data-title="סוכן AI קולי · פתרון לשני מערכים" data-section="06 · דוגמאות לפתרונות">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">06</span> · תרחיש מאוחד MS-01</div>
+        <h2 class="s-title">סוכן AI קולי · פתרון לשני מערכים</h2>
+        <p class="s-sub">פלטפורמה טכנולוגית אחת על תשתית Genesys, הנוגעת במערך השיווק ובמערך המכירות</p>
+      </header>
+      <div class="s-body">
+        <div class="va">
+          <div class="card va-card" data-reveal style="--c:var(--d-mar)">
+            <div class="hd"><h3>מערך השיווק · שירות צרכנים</h3><span class="pill" style="--teal:var(--d-mar)">415</span></div>
+            <div class="va-stats">
+              <div class="va-stat"><b>~157K</b><span>פניות בשנה</span></div>
+              <div class="va-stat"><b>7 דק׳</b><span>זמן טיפול ממוצע לפנייה</span></div>
+              <div class="va-stat"><b>~7</b><span>תקנים · פוטנציאל חיסכון (טווח ארוך)</span></div>
+            </div>
+            <div class="ladder"><b>6%</b><span class="lt"></span><b>31%</b><span>מודל מדורג ב-4 שלבים</span></div>
+            <div class="va-val">ערך שנתי מוערך: <b>₪1.4M</b></div>
+            <div class="chips"><span class="chip">Genesys</span><span class="chip">SharePoint</span><span class="chip">CRM7</span></div>
+          </div>
+          <div class="card va-card" data-reveal style="--c:var(--d-sales)">
+            <div class="hd"><h3>מערך המכירות · מוקד טלפוני וטופ</h3><span class="pill" style="--teal:var(--d-sales)">344</span></div>
+            <div class="va-stats">
+              <div class="va-stat"><b>~13.6K</b><span>פניות בחודש</span></div>
+              <div class="va-stat"><b>~40%</b><span>פניות חוזרות</span></div>
+              <div class="va-stat"><b>43% / 57%</b><span>ווטסאפ / טלפון, בהתאמה</span></div>
+            </div>
+            <div class="va-val">ערך שנתי מוערך כתקן אחד בפניות הטלפוניות: <b>₪180K</b></div>
+            <div class="chips"><span class="chip">Genesys</span><span class="chip">SAP CRM</span></div>
+          </div>
+        </div>
+        <div class="banner" data-reveal>תשתית Genesys אחת · פוטנציאל ערך משולב של כ-<b>₪1.6M</b> בשנה לשני המערכים</div>
+        <div class="grid cols-3">
+          <div class="card mini" data-reveal><h3>אפיון פרטני לכל מערך</h3><p>מקרי שימוש, נהלים, מערכות והרשאות שונים בכל מוקד. האפיון מתבצע בנפרד מול כל מערך.</p></div>
+          <div class="card mini" data-reveal><h3>הטמעה בשלבים</h3><p>פתיחה בשלב בסיס מצומצם, מדידת החיסכון בפועל ותיקוף לפני כל שלב הרחבה.</p></div>
+          <div class="card mini" data-reveal><h3>מגבלות ומידע רגיש</h3><p>בדיקת Compliance ו-DPO, הרשאות גישה למידע לקוח וגבולות פעולה של הסוכן לפני עלייה לאוויר.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15 — recommendations -->
+    <section class="slide slide--dense" id="s15" data-title="המלצות להמשך" data-section="07 · המלצות ותכנית עבודה">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">07</span> · המלצות ותכנית עבודה</div>
+        <h2 class="s-title">המלצות להמשך</h2>
+      </header>
+      <div class="s-body">
+        <div class="recs">
+          <div class="rec-col" data-reveal>
+            <header>אסטרטגי<span class="pill">STRATEGIC</span></header>
+            <div class="rec"><span class="idx">01</span><div><h3>הקמת מרכז מצוינות AI ארגוני</h3><p>צוות רוחבי המייצג את כלל היחידות העסקיות, שיוביל את בחינת ההזדמנויות, קבלת ההחלטות, מתודולוגיות העבודה, ניהול הסיכונים ותיעדוף פתרונות ה-AI בארגון.</p></div></div>
+            <div class="rec"><span class="idx">02</span><div><h3>ארכיטקטורת מערכת</h3><p>קביעת מסגרת ארכיטקטונית וגבולות גזרה ברורים: מתי וכיצד נעשה שימוש ביכולות ה-AI של SAP לעומת Microsoft, תוך הבטחת אינטגרציה, ממשל תאגידי ויעילות תפעולית.</p></div></div>
+            <div class="rec"><span class="idx">03</span><div><h3>הדרכות ארגוניות</h3><p>פיתוח מערך הדרכות לכלל עובדי הארגון, להקניית שימוש אפקטיבי ואחראי בכלי AI, הגברת המודעות לסיכונים וחיזוק אוריינות הבינה המלאכותית בכלל המערכים.</p></div></div>
+          </div>
+          <div class="rec-col rec-col--b" data-reveal>
+            <header>טקטי<span class="pill">TACTICAL</span></header>
+            <div class="rec"><span class="idx">01</span><div><h3>מימוש של 3 תרחישים (מתוך ה-7)</h3><p>מיקוד ביישום הזדמנויות AI בעלות בשלות גבוהה ופוטנציאל עסקי משמעותי, ליצירת הצלחות מהירות והנעת תוכנית ה-AI הארגונית.</p></div></div>
+            <div class="rec"><span class="idx">02</span><div><h3>פתרונות מדף AI</h3><p>הטמעת כלי AI מובילים כגון Microsoft Copilot Studio, Azure AI Foundry ו-Canva, לצד הקמת סביבות עבודה ייעודיות, כדי לאפשר למערכים לממש הזדמנויות AI במהירות ובאופן מבוקר.</p></div></div>
+            <div class="rec"><span class="idx">03</span><div><h3>המשך יישום והרחבת פתרונות</h3><p>הרחבת היישום של פתרונות נקודתיים בארגון בעלי ROI מוצדק וערך עסקי שמייצר התייעלות וצמיחה.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 — work plan (gantt; RTL grid → Q3-2026 on the right) -->
+    <section class="slide slide--dense" id="s16" data-title="תכנית עבודה" data-section="07 · המלצות ותכנית עבודה">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">07</span> · המלצות ותכנית עבודה</div>
+        <h2 class="s-title">תכנית עבודה</h2>
+        <p class="s-sub">Q3-2026 עד Q2-2027 · ארבעה רבדים: אסטרטגי, טקטי, מימוש ואימוץ</p>
+      </header>
+      <div class="s-body">
+        <div class="gantt" data-reveal>
+          <div class="g-line" style="grid-column:2"></div><div class="g-line" style="grid-column:3"></div><div class="g-line" style="grid-column:4"></div><div class="g-line" style="grid-column:5"></div>
+          <div class="g-q" style="grid-column:2">Q3 · 2026</div>
+          <div class="g-q" style="grid-column:3">Q4 · 2026</div>
+          <div class="g-q" style="grid-column:4">Q1 · 2027</div>
+          <div class="g-q" style="grid-column:5">Q2 · 2027</div>
+
+          <div class="g-lbl" style="grid-row:2">מרכז מצוינות AI</div>
+          <div class="g-bar g-strat grow" style="grid-row:2;grid-column:2/6;--g:0">הקמה » בניית צוותי עבודה » מיפוי צרכי כלים כלל-ארגוניים » הכוונת אסטרטגיית המשך</div>
+          <div class="g-lbl" style="grid-row:3">מערך הדרכות AI</div>
+          <div class="g-bar g-strat grow" style="grid-row:3;grid-column:3/6;--g:1">תכנון » בניית תכניות ותהליכי הדרכה » ביצוע הדרכות מחזורי</div>
+          <div class="g-lbl" style="grid-row:4">ארכיטקטורת פריסה SAP ו-Azure</div>
+          <div class="g-bar g-tact grow" style="grid-row:4;grid-column:2/3;--g:2"></div>
+          <div class="g-lbl" style="grid-row:5">מימוש פתרון נבחר 1</div>
+          <div class="g-bar g-impl grow" style="grid-row:5;grid-column:2/3;--g:3"></div>
+          <div class="g-lbl" style="grid-row:6">מימוש פתרון נבחר 2</div>
+          <div class="g-bar g-impl grow" style="grid-row:6;grid-column:3/4;--g:4"></div>
+          <div class="g-lbl" style="grid-row:7">מימוש פתרון נבחר 3</div>
+          <div class="g-bar g-impl grow" style="grid-row:7;grid-column:3/4;--g:5"></div>
+          <div class="g-lbl" style="grid-row:8">מימוש פתרונות נוספים</div>
+          <div class="g-bar g-impl grow" style="grid-row:8;grid-column:4/6;--g:6"></div>
+          <div class="g-lbl" style="grid-row:9">הטמעת כלי מדף לארגון</div>
+          <div class="g-bar g-adopt grow" style="grid-row:9;grid-column:3/4;--g:7"></div>
+          <div class="g-lbl" style="grid-row:10">הטמעת כלי מדף נוספים</div>
+          <div class="g-bar g-adopt grow" style="grid-row:10;grid-column:4/6;--g:8"></div>
+        </div>
+        <div class="g-legend" data-reveal>
+          <span class="g-strat"><i></i>אסטרטגי</span>
+          <span class="g-tact"><i></i>טקטי</span>
+          <span class="g-impl"><i></i>מימוש</span>
+          <span class="g-adopt"><i></i>אימוץ</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 17 — risks vs opportunities -->
+    <section class="slide slide--dense" id="s17" data-title="סיכונים מרכזיים מול הזדמנויות" data-section="08 · סיכונים והזדמנויות">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span><span class="num">08</span> · סיכונים והזדמנויות</div>
+        <h2 class="s-title">סיכונים מרכזיים מול הזדמנויות</h2>
+      </header>
+      <div class="s-body">
+        <div class="ro">
+          <div class="ro-col ro-col--risk">
+            <header data-reveal><svg><use href="#i-warn"/></svg>סיכונים</header>
+            <div class="ro-item" data-reveal><h3>רכש GenAI מפוזר מייצר עלויות וכפילויות</h3><p>כאשר כל יחידה רוכשת לבד, הארגון משלם כפול, מאבד שליטה ומקבל פתרונות לא מחוברים.</p></div>
+            <div class="ro-item" data-reveal><h3>Shadow AI</h3><p>שימוש עצמאי בכלי AI חיצוניים עלול לחשוף את הארגון לסיכוני אבטחת מידע, פרטיות, רגולציה וקניין רוחני. נדרשת מדיניות ארגונית ברורה.</p></div>
+            <div class="ro-item" data-reveal><h3>בשלות, איכות ומוכנות נתונים</h3><p>נתונים לא איכותיים, מפוזרים או לא מנוהלים גורמים לתשובות GenAI שגויות, חשיפת מידע רגיש, חוסר אמון וחוסר יכולת להטמיע פתרונות בסקייל.</p></div>
+            <div class="ro-item" data-reveal><h3>פער מיומנויות הולך וגדל בקרב עובדים ומנהלים</h3><p>עובדים לא ידעו להשתמש נכון בכלים, ומנהלים לא ידעו לזהות Use Cases איכותיים או לנהל סיכונים. בטווח הארוך יקשה על החברה להוביל שינוי, לגייס ולשמר עובדים חזקים.</p></div>
+          </div>
+          <div class="ro-col ro-col--opp">
+            <header data-reveal><svg><use href="#i-up"/></svg>הזדמנויות</header>
+            <div class="ro-item" data-reveal><h3>הפחתת סיכוני מידע ואבטחה</h3><p>מדיניות ברורה לשימוש במידע רגיש, הרשאות, שמירת מידע ובקרת ספקים, לצד עבודה מוסדרת בתוך כללי ההתנהלות הארגוניים.</p></div>
+            <div class="ro-item" data-reveal><h3>שיפור פרודוקטיביות באלפי שעות עבודה</h3><p>תהליכים ידניים במטה, שירות, מכירות, HR, משפטי, רכש ותפעול מתקצרים משמעותית, לצד ערך משמעותי לעובדים כחלק מהקדמה הטכנולוגית.</p></div>
+            <div class="ro-item" data-reveal><h3>חיבור החדשנות לצרכים עסקיים אמיתיים</h3><p>החדשנות לא נשארת "מעבדתית", אלא מתמקדת באתגרים עם ערך מדיד: חיסכון, קיצור זמני עבודה, איכות שירות ושיפור החלטות.</p></div>
+            <div class="ro-item" data-reveal><h3>חיסכון בעלויות רכש וכפילויות</h3><p>במקום שכל יחידה תרכוש לבד, הארגון מרכז רישיונות, ספקים, תשתיות ויכולות.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 — thanks -->
+    <section class="slide" id="s18" data-title="תודה רבה" data-section="סיום">
+      <header class="s-head" data-reveal>
+        <div class="eyebrow"><span class="tick"></span>SoluGen AI × CBC Israel</div>
+        <h2 class="s-title">תודה רבה</h2>
+      </header>
+      <div class="s-body">
+        <div class="team">
+          <div class="person" data-reveal>
+            <div class="avatar"><img src="assets/dor.jpg" alt="דור בלמס"></div>
+            <div class="nm">דור בלמס</div>
+            <div class="role">AI Transformation Lead</div>
+            <div class="contact"><span>054-5407391</span><a href="mailto:bellmas@solugen.ai">bellmas@solugen.ai</a></div>
+          </div>
+          <div class="person" data-reveal>
+            <div class="avatar"><img src="assets/adir.jpg" alt="אדיר אורן"></div>
+            <div class="nm">אדיר אורן</div>
+            <div class="role">CEO</div>
+            <div class="contact"><span>054-5615656</span><a href="mailto:adiro@solugen.ai">adiro@solugen.ai</a></div>
+          </div>
+          <div class="person" data-reveal>
+            <div class="avatar"><img src="assets/nechemya.jpg" alt="נחמיה קנלסקי"></div>
+            <div class="nm">נחמיה קנלסקי</div>
+            <div class="role">CTO</div>
+            <div class="contact"><span>050-6730770</span><a href="mailto:nk@solugen.ai">nk@solugen.ai</a></div>
+          </div>
+        </div>
+        <a class="thanks-foot" data-reveal href="https://www.solugen.ai" target="_blank" rel="noopener noreferrer">www.solugen.ai</a>
+      </div>
+    </section>
+
+    <div class="wordmark">
+      <img class="sg" src="assets/solugen-logo.png" alt="SoluGen AI">
+      <i></i>
+      <img class="cbc" src="assets/cbc-logo.png" alt="CBC Israel">
+    </div>
+    <div class="conf">- סודי מסחרי -</div>
+
+  </div>
+
+  <button class="nav-arrow nav-arrow--next" data-act="next" aria-label="שקף הבא" title="שקף הבא"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12 15 19.5"/></svg></button>
+  <button class="nav-arrow nav-arrow--prev" data-act="prev" aria-label="שקף קודם" title="שקף קודם"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 16.5 12 9 19.5"/></svg></button>
+
+  <div class="hud">
+    <button data-act="prev" aria-label="שקף קודם" title="שקף קודם"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 16.5 12 9 19.5"/></svg></button>
+    <div class="bar"><i></i></div>
+    <span class="count">01 / 18</span>
+    <button data-act="ov" aria-label="סקירת שקפים" title="סקירת שקפים (G)">&#9638;</button>
+    <button data-act="fs" aria-label="מסך מלא" title="מסך מלא (F)">&#9974;</button>
+    <button data-act="next" aria-label="שקף הבא" title="שקף הבא"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12 15 19.5"/></svg></button>
+  </div>
+
+  <div class="overview" hidden>
+    <div class="ov-head">
+      <span>CBC × SoluGen AI · AI Discovery — סקירת שקפים</span>
+      <button class="ov-close" aria-label="סגירה">&#10005;</button>
+    </div>
+    <div class="ov-grid"></div>
+  </div>
+
+  <div class="help" hidden>
+    <div class="help-card">
+      <b>ניווט במצגת</b>
+      <ul>
+        <li><kbd>&#8592;</kbd> <kbd>רווח</kbd> — שקף הבא</li>
+        <li><kbd>&#8594;</kbd> — שקף קודם</li>
+        <li><kbd>G</kbd> — סקירת כל השקפים</li>
+        <li><kbd>F</kbd> — מסך מלא</li>
+        <li><kbd>Esc</kbd> — סגירת חלון</li>
+      </ul>
+    </div>
+  </div>
+  <div class="toast" role="status"></div>
+</div>
+
+<script>
+/* =====================================================================
+   DEMO LINKS — slide 13. Paste each URL between the quotes.
+   An empty string keeps the button in "link coming soon" mode.
+   ===================================================================== */
+var DEMO_LINKS = {
+  1: "",   // HR-305    · קליטה וסינון קו״ח
+  2: "",   // PUR-331   · השוואת מסמכים והסכמים
+  3: "",   // PUR-417   · ניהול תהליך רכש הזמנות קטנות
+  4: "",   // SALES-348 · עדכון Master Data ב-SAP
+  5: "",   // FIN-370   · התחשבנות עם לקוחות
+  6: "",   // SUPP-396  · אוטומציית העמסת משאית
+  7: ""    // MAN-416   · ניתוח תקלות ייצור Online-POC
+};
+
+/* departments: key → [label, css colour var] */
+var DEPTS = {
+  hr:    ["משאבי אנוש",    "var(--d-hr)"],
+  pur:   ["רכש",           "var(--d-pur)"],
+  sales: ["מכירות",        "var(--d-sales)"],
+  fin:   ["כספים",         "var(--d-fin)"],
+  mar:   ["שיווק",         "var(--d-mar)"],
+  ms:    ["מכירות ושיווק", "var(--d-ms)"],
+  supp:  ["שרשרת אספקה",  "var(--d-supp)"],
+  tera:  ["טרה",           "var(--d-tera)"]
+};
+
+/* 29 priority-1 scenarios (slides 9–10).
+   [#, ID, dept, process, category, value, QW/MVP, complexity: low|mid|high|"" ] */
+var SCENARIOS = [
+  [1,"HR-01","hr","גיוס ומיון מועמדים","GenAI","","","low"],
+  [2,"HR-305","hr","קליטה וסינון קו״ח","GenAI","₪250K","MVP QW",""],
+  [3,"HR-307","hr","תקשורת אוטומטית עם מועמדים","GenAI","","","mid"],
+  [4,"HR-308","hr","התחשבנות עם ספקי גיוס","אוטומציה RPA","","","high"],
+  [5,"HR-350","hr","סוכן AI בפורטל המנהלים","GenAI","","QW","low"],
+  [6,"HR-319","hr","יצירת תוכן ומיתוג מעסיק","GenAI","₪60K","QW","low"],
+  [7,"PUR-417","pur","ניהול הזמנות רכש עד 15,000 ש״ח","GenAI","₪650K","MVP QW","mid"],
+  [8,"PUR-330","pur","איתור מקורות מידע","GenAI","","MVP","mid"],
+  [9,"PUR-331","pur","השוואת מסמכים והסכמים","GenAI","","MVP QW","low"],
+  [10,"SALES-341","sales","אופטימיזציה לאיש מכירות בשטח","GenAI + BI","₪2M","","mid"],
+  [11,"SALES-343","sales","טיפול בהזמנות ופניות לקוחות","GenAI","₪180K","","mid"],
+  [12,"SALES-348","sales","עדכון Master Data ב-SAP","GenAI","₪432K","MVP QW","low"],
+  [13,"FIN-361","fin","תחזית מתגלגלת רווח והפסד","GenAI + BI","","","high"],
+  [14,"FIN-363","fin","תחזיות כמותיות למוצרים חדשים","GenAI / BI","","","high"],
+  [15,"FIN-368","fin","תשלום קנסות תחבורה","אוטומציה RPA","₪216K","","mid"],
+  [16,"FIN-370","fin","התחשבנות עם לקוחות","GenAI","₪500K","MVP","mid"],
+  [17,"FIN-373","fin","איתור אנומליות בנתוני לקוחות","ML","","","high"],
+  [18,"MS-01","ms","מענה קולי אוטומטי במוקד (מאוחד)","פתרון מדף","₪1.6M","","mid"],
+  [19,"MAR-376","mar","עוזר לנציגה בזמן אמת","פתרון מדף","","","mid"],
+  [20,"MAR-01","mar","תמלול ובקרת איכות שיחות (מאוחד)","פתרון מדף","","","mid"],
+  [21,"MAR-379","mar","תובנות מסקרי שביעות רצון","GenAI","","QW","mid"],
+  [22,"MAR-380","mar","תובנות מדוחות תפעוליים","GenAI / BI","","","low"],
+  [23,"MAR-382","mar","תכנון מדיה ואופטימיזציית תקציב","BI","","","high"],
+  [24,"MAR-385","mar","ניהול תשתית הדשבורדים (ג׳יני)","GenAI / BI","","","mid"],
+  [25,"MAR-386","mar","ניתוח שוטף ותחזיות מכר","ML","","","high"],
+  [26,"SUPP-396","supp","אוטומציית פריסה והעמסת משאית","אוטומציה RPA","₪950K","MVP QW","low"],
+  [27,"SUPP-397","supp","ייעול תהליכים ידניים בתיאום האספקות","אוטומציה RPA","₪570K","","mid"],
+  [28,"SUPP-398","supp","קופה וסגירת מטענים","GenAI","","","high"],
+  [29,"MAN-416","tera","ניתוח תקלות בייצור","GenAI","₪2.0M","MVP QW","low"]
+];
+
+/* matrix bubbles (slide 11): [ID, x 0–100 = complexity 0→9+ months, y 0–100 = value high→low, MVP?, note]
+   positions taken from the source slide */
+var MATRIX = [
+  ["MAN-416",  26.2,  9.4, 1, "POC"],
+  ["SUPP-396", 31.5,  9.5, 1],
+  ["HR-305",   31.5, 22.3, 1],
+  ["FIN-370",  47.9, 15.2, 1],
+  ["PUR-417",  52.2, 24.5, 1],
+  ["SALES-348",33.5, 43.3, 1],
+  ["PUR-331",  30.4, 56.9, 1],
+  ["PUR-330",  41.1, 44.1, 0],
+  ["MAR-385",  49.9, 43.3, 0],
+  ["HR-319",   35.4, 56.4, 0],
+  ["HR-307",   49.3, 54.1, 0],
+  ["MAR-01",   52.2, 64.4, 0],
+  ["HR-350",   32.6, 68.9, 0],
+  ["MAR-379",  43.2, 76.2, 0],
+  ["MAR-380",  36.8, 90.5, 0],
+  ["SALES-343",57.9, 53.0, 0],
+  ["SALES-341",62.9, 45.2, 0],
+  ["MS-01",    64.4, 64.4, 0],
+  ["MAR-376",  70.3, 45.5, 0],
+  ["FIN-361",  70.7, 32.0, 0],
+  ["FIN-373",  71.3, 64.7, 0],
+  ["FIN-368",  64.4, 79.5, 0],
+  ["SUPP-397", 55.2, 78.3, 0],
+  ["HR-308",   73.0, 80.6, 0],
+  ["FIN-363",  78.3, 53.1, 0],
+  ["MAR-382",  78.8, 66.4, 0],
+  ["MAR-386",  83.3, 43.9, 0],
+  ["SUPP-398", 85.6, 81.1, 0],
+  ["MAN-416",  87.3,  9.5, 0, "מימוש מלא"]
+];
+
+(function(){
+  document.documentElement.setAttribute('dir','rtl');
+  document.documentElement.setAttribute('lang','he');
+
+  var byId = {};
+  SCENARIOS.forEach(function(r){ byId[r[1]] = r; });
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  /* ---- tables ---- */
+  var CX = { low:["cx--low","נמוכה"], mid:["cx--mid","בינונית"], high:["cx--high","גבוהה"] };
+  document.querySelectorAll('[data-table]').forEach(function(box){
+    var rng = box.getAttribute('data-table').split('-'), a = +rng[0], b = +rng[1];
+    var h = '<table class="sc"><thead><tr><th>#</th><th>ID</th><th>מערך</th><th>תהליך</th><th>קטגוריה</th><th>ערך</th><th>QW / MVP</th><th>מורכבות מימוש</th></tr></thead><tbody>';
+    SCENARIOS.filter(function(r){ return r[0] >= a && r[0] <= b; }).forEach(function(r){
+      var d = DEPTS[r[2]], tags = r[6] ? r[6].split(' ').map(function(t){ return '<span class="tag tag--' + t.toLowerCase() + '">' + t + '</span>'; }).join('') : '<span style="color:var(--ink-3)">—</span>';
+      var cx = CX[r[7]];
+      h += '<tr><td class="n">' + r[0] + '</td><td class="id">' + r[1] + '</td>' +
+           '<td class="dp"><span class="dot" style="--c:' + d[1] + '"></span>' + d[0] + '</td>' +
+           '<td class="proc">' + esc(r[3]) + '</td><td>' + esc(r[4]) + '</td>' +
+           (r[5] ? '<td class="val"><span class="num-ltr">' + r[5] + '</span></td>' : '<td class="val ind">ערך עקיף</td>') +
+           '<td>' + tags + '</td>' +
+           '<td>' + (cx ? '<span class="cx ' + cx[0] + '"><i></i>' + cx[1] + '</span>' : '<span style="color:var(--ink-3)">—</span>') + '</td></tr>';
+    });
+    box.innerHTML = h + '</tbody></table>';
+  });
+
+  /* ---- matrix ---- */
+  var mx = document.querySelector('.mx'), plot = mx.querySelector('.mx-plot'), legend = mx.querySelector('.mx-legend');
+  var tip = document.createElement('div'); tip.className = 'tip'; tip.hidden = true; plot.appendChild(tip);
+  var counts = {};
+  MATRIX.forEach(function(m, k){
+    var r = byId[m[0]], d = DEPTS[r[2]];
+    counts[r[2]] = (counts[r[2]] || 0) + 1;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'bub' + (m[3] ? ' bub--mvp' : '');
+    b.setAttribute('data-dept', r[2]);
+    b.style.cssText = 'left:' + m[1] + '%;top:' + m[2] + '%;--c:' + d[1] + ';--k:' + k;
+    b.setAttribute('aria-label', r[3] + ' · ' + r[1]);
+    function show(){
+      tip.innerHTML = '<b>' + esc(r[3]) + (m[4] ? ' · ' + m[4] : '') + '</b>' +
+        '<div class="row"><span>' + d[0] + '</span><em>' + r[1] + '</em></div>' +
+        '<div class="row"><span>ערך</span><em>' + (r[5] || 'ערך עקיף') + '</em></div>' +
+        '<div class="row"><span>קטגוריה</span><span>' + esc(r[4]) + '</span></div>' +
+        (r[6] ? '<div class="row"><span>סטטוס</span><em>' + r[6].replace(' ', ' + ') + '</em></div>' : '');
+      tip.style.left = Math.min(Math.max(m[1], 12), 88) + '%';
+      tip.style.top = m[2] + '%';
+      tip.style.transform = m[2] < 30 ? 'translate(-50%, 18px)' : 'translate(-50%, calc(-100% - 14px))';
+      tip.hidden = false;
+    }
+    b.addEventListener('mouseenter', show); b.addEventListener('focus', show);
+    b.addEventListener('mouseleave', function(){ tip.hidden = true; });
+    b.addEventListener('blur', function(){ tip.hidden = true; });
+    plot.appendChild(b);
+  });
+  var active = null;
+  Object.keys(DEPTS).forEach(function(key){
+    var d = DEPTS[key], l = document.createElement('button');
+    l.type = 'button'; l.className = 'lg'; l.style.setProperty('--c', d[1]);
+    l.innerHTML = '<span class="dot"></span>' + d[0] + '<span class="cnt">' + (counts[key] || 0) + '</span>';
+    l.addEventListener('click', function(){
+      active = active === key ? null : key;
+      mx.classList.toggle('has-filter', !!active);
+      legend.querySelectorAll('.lg').forEach(function(x){ x.classList.remove('on'); });
+      if (active) l.classList.add('on');
+      plot.querySelectorAll('.bub').forEach(function(bb){ bb.classList.toggle('on', bb.getAttribute('data-dept') === active); });
+    });
+    legend.appendChild(l);
+  });
+  var hint = document.createElement('div'); hint.className = 'mx-hint';
+  hint.innerHTML = '<span class="tag tag--mvp">MVP</span> 7 התרחישים שנבחרו למימוש ראשוני. ניתוח תקלות בייצור מופיע פעמיים: POC מול מימוש מלא.';
+  legend.appendChild(hint);
+
+  /* ---- demo links ---- */
+  var toast = document.querySelector('.toast'), toastT;
+  function say(msg){ toast.textContent = msg; toast.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function(){ toast.classList.remove('show'); }, 2200); }
+  document.querySelectorAll('[data-demo]').forEach(function(a){
+    var url = DEMO_LINKS[a.getAttribute('data-demo')];
+    if (url){ a.href = url; }
+    else {
+      a.href = '#'; a.classList.add('is-pending');
+      a.addEventListener('click', function(e){ e.preventDefault(); say('קישור הדמו יעודכן בקרוב'); });
+    }
+  });
+
+  /* ---- deck navigation ---- */
+  var deck   = document.querySelector('.deck');
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var fill   = document.querySelector('.hud .bar > i');
+  var count  = document.querySelector('.hud .count');
+  var ov     = document.querySelector('.overview');
+  var ovGrid = document.querySelector('.ov-grid');
+  var help   = document.querySelector('.help');
+  var navPrev = document.querySelector('.nav-arrow--prev');
+  var navNext = document.querySelector('.nav-arrow--next');
+  var hudPrev = document.querySelector('.hud [data-act="prev"]');
+  var hudNext = document.querySelector('.hud [data-act="next"]');
+  var idx    = 0;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function clamp(n){ return n < 0 ? 0 : (n > slides.length - 1 ? slides.length - 1 : n); }
+
+  slides.forEach(function(s){
+    var els = s.querySelectorAll('[data-reveal]');
+    for (var i = 0; i < els.length; i++){ els[i].style.setProperty('--i', i); }
+  });
+
+  // count-up numbers on slide entry
+  function countUp(slide){
+    if (reduce) return;
+    slide.querySelectorAll('[data-count]').forEach(function(el){
+      var to = parseFloat(el.getAttribute('data-count')), dec = +(el.getAttribute('data-dec') || 0);
+      var t0 = null, dur = 1100;
+      el.textContent = (0).toFixed(dec);
+      function step(t){
+        if (!t0) t0 = t;
+        var p = Math.min((t - t0) / dur, 1), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = (to * e).toFixed(dec);
+        if (p < 1) requestAnimationFrame(step);
+      }
+      setTimeout(function(){ requestAnimationFrame(step); }, 250);
+    });
+  }
+
+  var ovCards = slides.map(function(s, i){
+    var b = document.createElement('button');
+    b.className = 'ov';
+    b.type = 'button';
+    b.innerHTML = '<span class="n">' + pad(i + 1) + '</span><span class="t"></span><span class="s"></span>';
+    b.querySelector('.t').textContent = s.getAttribute('data-title') || ('שקף ' + (i + 1));
+    b.querySelector('.s').textContent = s.getAttribute('data-section') || '';
+    b.addEventListener('click', function(){ go(i); setOv(false); });
+    ovGrid.appendChild(b);
+    return b;
+  });
+
+  function render(){
+    slides.forEach(function(s, i){ s.classList.toggle('is-active', i === idx); });
+    ovCards.forEach(function(c, i){ c.classList.toggle('current', i === idx); });
+    fill.style.width = (idx / (slides.length - 1) * 100) + '%';
+    count.textContent = pad(idx + 1) + ' / ' + slides.length;
+    deck.classList.toggle('on-title', idx === 0);
+    var atStart = idx === 0, atEnd = idx === slides.length - 1;
+    navPrev.disabled = hudPrev.disabled = atStart;
+    navNext.disabled = hudNext.disabled = atEnd;
+    countUp(slides[idx]);
+    try { history.replaceState(null, '', '#' + (idx + 1)); } catch (e) {}
+  }
+  function go(n){ var c = clamp(n); if (c === idx && slides[idx].classList.contains('is-active')) return; idx = c; render(); }
+  function next(){ go(idx + 1); }
+  function prev(){ go(idx - 1); }
+
+  function setOv(v){ ov.hidden = !v; if (v) { ov.querySelector('.ov-close').focus(); } }
+  function setHelp(v){ help.hidden = !v; }
+  function toggleFs(){
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    } catch (e) {}
+  }
+
+  document.addEventListener('keydown', function(e){
+    if (!help.hidden){ if (e.key === 'Escape' || e.key === '?') setHelp(false); return; }
+    if (!ov.hidden){ if (e.key === 'Escape' || e.key === 'g' || e.key === 'G') setOv(false); return; }
+    switch (e.key){
+      case 'ArrowLeft': case 'ArrowDown': case 'PageDown': case ' ': case 'Spacebar':
+        e.preventDefault(); next(); break;
+      case 'ArrowRight': case 'ArrowUp': case 'PageUp':
+        e.preventDefault(); prev(); break;
+      case 'Home': e.preventDefault(); go(0); break;
+      case 'End': e.preventDefault(); go(slides.length - 1); break;
+      case 'g': case 'G': setOv(ov.hidden); break;
+      case 'f': case 'F': toggleFs(); break;
+      case '?': setHelp(true); break;
+    }
+  });
+
+  deck.addEventListener('click', function(e){
+    var b = e.target.closest('[data-act]');
+    if (b){
+      var a = b.getAttribute('data-act');
+      if (a === 'prev') prev();
+      else if (a === 'next') next();
+      else if (a === 'ov') setOv(ov.hidden);
+      else if (a === 'fs') toggleFs();
+      return;
+    }
+    if (e.target !== deck) return;
+    if (e.clientX < window.innerWidth / 2) next(); else prev();
+  });
+  count.addEventListener('click', function(){ setOv(ov.hidden); });
+  ov.querySelector('.ov-close').addEventListener('click', function(){ setOv(false); });
+  ov.addEventListener('click', function(e){ if (e.target === ov) setOv(false); });
+  help.addEventListener('click', function(){ setHelp(false); });
+
+  document.querySelectorAll('[data-goto]').forEach(function(el){
+    el.addEventListener('click', function(){ go(parseInt(el.getAttribute('data-goto'), 10) - 1); });
+  });
+
+  var tx = 0, ty = 0;
+  deck.addEventListener('touchstart', function(e){ tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+  deck.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { if (dx < 0) next(); else prev(); }
+  }, { passive: true });
+
+  var h = parseInt((location.hash || '').replace('#', ''), 10);
+  if (h >= 1 && h <= slides.length) idx = h - 1;
+  render();
+})();
+</script>
+</body>
+</html>
