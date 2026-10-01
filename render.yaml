@@ -1,0 +1,17 @@
+# Render Blueprint — static site.
+# https://render.com/docs/blueprint-spec
+#
+# The build step copies the static files into ./build so the publish
+# directory Render pre-fills ("build") works out of the box.
+services:
+  - type: web
+    name: cbc-ai-discovery
+    runtime: static
+    buildCommand: "rm -rf build && mkdir build && cp index.html build/ && cp -R assets build/"
+    staticPublishPath: build
+    pullRequestPreviewsEnabled: false
+    headers:
+      # confidential deck: keep it out of search engines
+      - path: /*
+        name: X-Robots-Tag
+        value: noindex, nofollow
